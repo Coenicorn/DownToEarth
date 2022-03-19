@@ -2,11 +2,20 @@ import InputHandler from "./inputHandler";
 import { Player } from "./gameobject/entity";
 import EntityManager from "./gameobject/entityManager";
 import { Renderer } from "./renderer";
-import BackgroundImage from "./assets/Background1.png";
 import { Level } from "./level";
 
 const entityManager = new EntityManager();
-const inputHandler = new InputHandler({});
+const inputHandler = new InputHandler()
+
+// initialize player
+let player = new Player(
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 50, y: 100 }
+);
+entityManager.newEntity(player);
+inputHandler.bind(player);
+
 const renderer = new Renderer();
 renderer.mount("#main");
 
@@ -16,17 +25,11 @@ const fps = 1000 / 60;
 let lastUpdate = Date.now();
 let renderTimer = 0;
 
-// initialize player
-let player = new Player(
-    { x: 0, y: 0 },
-    { x: 1, y: 0 },
-    { x: 50, y: 100 }
-);
-entityManager.newEntity(player);
-
 const level = new Level(player);
 
 function update() {
+    inputHandler.handleKeys();
+
     entityManager.update(deltaTime);
 
     level.update();

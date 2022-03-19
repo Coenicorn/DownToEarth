@@ -4,7 +4,6 @@
     "description": "A geography game for a school project",
     "private": true,
     "scripts": {
-        "copyfiles": "Xcopy /E /I /Y .\\src\\assets\\*.png .\\lib\\assets",
         "build": "webpack",
         "watch": "webpack -w"
     },

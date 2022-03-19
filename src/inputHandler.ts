@@ -1,13 +1,21 @@
+import { GameObject } from "./gameobject/entity";
+
 export default class InputHandler {
     keys: string[];
-    keybinds: Object;
 
-    constructor(kb: Object) {
+    // opting out of type checking go brrrrrrr
+    boundTo: any;
+
+    constructor() {
         this.keys = [];
-        this.keybinds = kb;
+        this.boundTo = null;
 
         addEventListener("keydown", this.keyPressed.bind(this));
         addEventListener("keyup", this.keyReleased.bind(this));
+    }
+
+    bind(obj: GameObject) {
+        this.boundTo = obj;
     }
 
     keyPressed(key: KeyboardEvent) {
@@ -18,5 +26,8 @@ export default class InputHandler {
         try {
             this.keys.splice(this.keys.indexOf(key.key));
         } catch (e) { }
+    }
+
+    handleKeys() {
     }
 }
