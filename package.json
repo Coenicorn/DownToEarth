@@ -1,0 +1,32 @@
+{
+    "name": "geographygamearhc",
+    "version": "1.0.0",
+    "description": "A geography game for a school project",
+    "private": true,
+    "scripts": {
+        "copyfiles": "Xcopy /E /I /Y .\\src\\assets\\*.png .\\lib\\assets",
+        "build": "webpack",
+        "watch": "webpack -w"
+    },
+    "author": {
+        "name": "Coenicorn"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.17.3",
+        "open-simplex-noise": "^2.5.0",
+        "tslint": "^6.1.3",
+        "typescript": "^4.6.2"
+    },
+    "files": [
+        "./bin/*",
+        "./lib/*"
+    ],
+    "devDependencies": {
+        "file-loader": "^6.2.0",
+        "node-loader": "^2.0.0",
+        "ts-loader": "^9.2.8",
+        "webpack": "^5.70.0",
+        "webpack-cli": "^4.9.2"
+    }
+}
