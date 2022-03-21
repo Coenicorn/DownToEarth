@@ -27,7 +27,4 @@ export default class InputHandler {
             this.keys.splice(this.keys.indexOf(key.key));
         } catch (e) { }
     }
-
-    handleKeys() {
-    }
 }

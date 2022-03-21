@@ -28,8 +28,6 @@ let renderTimer = 0;
 const level = new Level(player);
 
 function update() {
-    inputHandler.handleKeys();
-
     entityManager.update(deltaTime);
 
     level.update();
