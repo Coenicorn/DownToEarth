@@ -2,30 +2,57 @@ import { Camera, Renderer } from "../renderer";
 import { Vec2 } from "../types";
 
 // switch from position + dimension to line mesh
+export class Line {
+    p1: Vec2;
+    p2: Vec2;
+
+    constructor(p1: Vec2, p2: Vec2) {
+        this.p1 = p1;
+        this.p2 = p2;
+    }
+
+    intersect(line: Line): boolean {
+        // desperately needs fixing
+
+        let d = (this.p1.x - this.p2.x) * (line.p1.y - line.p2.y) - (this.p1.y - this.p2.y) * (line.p1.y - line.p2.y);
+
+        if (d < 0.1) return false;
+
+        return false;
+    }
+}
+
+function createRectangle(x: number, y: number, w: number, h: number): Line[] {
+    return [
+        new Line({ x: x, y: y }, { x: x + w, y: y }),
+        new Line({ x: x + w, y: y }, { x: x + w, y: y + h }),
+        new Line({ x: x + w, y: y + h }, { x: x, y: y + h }),
+        new Line({ x: x, y: y + h }, { x: x, y: y })
+    ];
+}
 
 export abstract class GameObject {
     position: Vec2;
     velocity: Vec2;
     acceleration: Vec2;
 
-    // for bounding
-    dimensions: Vec2;
+    mesh: Line[];
 
-    constructor(pos: Vec2, dim: Vec2) {
+    constructor(pos: Vec2, mesh: Line[]) {
         this.position = pos;
         this.velocity = { x: 0, y: 0 };
         this.acceleration = { x: 0, y: 0 }
-        this.dimensions = dim;
+        this.mesh = mesh;
     }
 
     abstract update(deltaTime: number): void;
     abstract render(camera: Camera): void;
-    abstract collide(object: GameObject): void;
+    abstract collide(mesh: Line[]): void;
 }
 
 export class Rock extends GameObject {
     constructor(pos: Vec2, dim: Vec2) {
-        super(pos, dim);
+        super(pos, createRectangle(pos.x, pos.y, dim.x, dim.y));
     }
 
     update(deltaTime: number): void {
@@ -36,18 +63,17 @@ export class Rock extends GameObject {
         this.velocity.y *= 0.9;
     }
 
-    collide(object: GameObject): void {
-        // check for collision
-        if (this.position.x < object.position.x - object.dimensions.x && this.position.x + this.dimensions.x > object.position.x &&
-            this.position.y < object.position.y - object.dimensions.y && this.position.y + this.dimensions.y > object.position.y) {
-
-            console.log("colliding");
+    collide(mesh: Line[]): void {
+        for (let line of mesh) {
+            for (let line2 of this.mesh) {
+                line.intersect(line2)
+            }
         }
     }
 
     render(camera: Camera): void {
         camera.viewport.color("red");
-        camera.viewport.drawRectangle(this.position.x, this.position.y, this.dimensions.x, this.dimensions.y);
+        camera.viewport.drawLineMesh(this.mesh, true);
     }
 }
 
@@ -58,7 +84,7 @@ export class Player extends GameObject {
     alive: boolean;
 
     constructor(pos: Vec2, dim: Vec2) {
-        super(pos, dim);
+        super(pos, createRectangle(pos.x, pos.y, dim.x, dim.y));
 
         this.speed = 2;
         this.maxSpeed = 10;
@@ -85,16 +111,16 @@ export class Player extends GameObject {
         this.acceleration = { x: 0, y: 0 }
     }
 
-    collide(object: GameObject): void {
+    collide(mesh: Line[]): void {
         return;
     }
 
     render(camera: Camera): void {
-        camera.viewport.translate(0, 0);
+        camera.viewport.translate(camera.viewport.width / 2, camera.viewport.height / 2);
 
         // bounding box visualization
         camera.viewport.color("black");
-        camera.viewport.drawRectangle(camera.viewport.width / 2 - this.dimensions.x / 2, camera.viewport.height / 2 - this.dimensions.y / 2, this.dimensions.x, this.dimensions.y);
+        camera.viewport.drawLineMesh(this.mesh, true);
 
         camera.viewport.translateVec2(camera.position);
     }

@@ -1,4 +1,4 @@
-import { GameObject } from "./gameobject/entity";
+import { GameObject, Line } from "./gameobject/entity";
 import { Vec2 } from "./types";
 
 export class Camera {
@@ -62,6 +62,21 @@ export class Renderer {
         x = Math.round(x + this.offset.x), y = Math.round(y + this.offset.y);
 
         this.context.fillRect(x, y, w, h);
+    }
+
+    drawLineMesh(mesh: Line[], fill: boolean) {
+        this.context.lineWidth = 1;
+        this.context.beginPath();
+        let start = mesh[0];
+        this.context.moveTo(start.p1.x + this.offset.x, start.p1.y + this.offset.y);
+        this.context.lineTo(start.p2.x + this.offset.x, start.p2.y + this.offset.y);
+        for (let i = 1, l = mesh.length; i < l; i++) {
+            let c = mesh[i];
+            this.context.lineTo(c.p2.x + this.offset.x, c.p2.y + this.offset.y);
+        }
+        this.context.closePath();
+        if (fill) this.context.fill();
+        this.context.stroke();
     }
 
     drawSprite(sprite: HTMLImageElement | HTMLCanvasElement, x: number, y: number, w: number = sprite.width, h: number = sprite.height) {

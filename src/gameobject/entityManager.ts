@@ -15,7 +15,7 @@ export default class EntityManager {
             this.entities.forEach(entityColliding => {
                 if (entity == entityColliding) return;
 
-                entity.collide(entityColliding);
+                entity.collide(entityColliding.mesh);
             })
         });
     }
