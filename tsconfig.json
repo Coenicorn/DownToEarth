@@ -1,23 +1,24 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "ESNext",
         "module": "ESNext",
-        "moduleResolution": "node",
         "lib": [
             "ESNext",
             "DOM"
         ],
-        "sourceMap": true,
-        "strict": true,
         "typeRoots": [
             "src/assets/"
         ],
+        "sourceMap": true,
+        "strict": true,
+        "noImplicitReturns": true,
         "esModuleInterop": true,
         "outDir": "./lib",
-        "removeComments": true
+        "removeComments": true,
+        "strictNullChecks": true,
+        "alwaysStrict": true
     },
     "include": [
-        "src/*",
-        "src/assets"
+        "src/*/**.ts",
     ]
 }

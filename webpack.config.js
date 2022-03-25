@@ -9,22 +9,17 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
+                test: /\.ts?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
             {
-                test: /\.(png|jpe?g|gif)$/i,
-                use: [
-                    {
-                        loader: 'file-loader',
-                    },
-                ],
-            },
-            {
-                test: /\.node$/,
-                loader: "node-loader",
-            },
+                test: /\.(png|jpe?g|svg)$/,
+                loader: 'file-loader',
+                options: {
+                    name: 'assets/[name].[ext]',
+                }
+            }
         ],
     },
     resolve: {

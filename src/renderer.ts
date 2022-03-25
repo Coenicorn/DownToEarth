@@ -1,4 +1,25 @@
+import { GameObject } from "./gameobject/entity";
 import { Vec2 } from "./types";
+
+export class Camera {
+    position: Vec2;
+    speed: number;
+    viewport: Renderer;
+
+    constructor(pos: Vec2, speed: number, view: Renderer) {
+        this.position = pos;
+        this.speed = speed;
+        this.viewport = view;
+    }
+
+    follow(entity: GameObject) {
+        this.position.x = -entity.position.x;
+        this.position.y = -entity.position.y;
+
+        this.position.x += this.viewport.width / 2;
+        this.position.y += this.viewport.height / 2;
+    }
+}
 
 export class Renderer {
     private canvas: HTMLCanvasElement;
@@ -7,12 +28,18 @@ export class Renderer {
     width: number;
     height: number;
 
-    constructor() {
+    offset: Vec2;
+
+    constructor(width: number, height: number) {
         this.canvas = document.createElement("canvas");
         this.context = this.canvas.getContext("2d")!;
 
-        this.width = this.canvas.width = screen.width;
-        this.height = this.canvas.height = screen.height;
+        this.width = this.canvas.width = width;
+        this.height = this.canvas.height = height;
+
+        this.canvas.style.zIndex = "-10";
+
+        this.offset = { x: 0, y: 0 }
     }
 
     mount(elm: string) {
@@ -32,19 +59,21 @@ export class Renderer {
     }
 
     drawRectangle(x: number, y: number, w: number, h: number) {
+        x = Math.round(x + this.offset.x), y = Math.round(y + this.offset.y);
+
         this.context.fillRect(x, y, w, h);
     }
 
-    drawText(x: number, y: number, font: string, text: string) {
-        this.context.font = font;
-        this.context.fillText(text, x, y);
-    }
+    drawSprite(sprite: HTMLImageElement | HTMLCanvasElement, x: number, y: number, w: number = sprite.width, h: number = sprite.height) {
+        x = Math.round(x + this.offset.x), y = Math.round(y + this.offset.y);
 
-    drawSprite(sprite: HTMLImageElement, x: number, y: number, w: number = sprite.width, h: number = sprite.height) {
         this.context.drawImage(sprite, x, y, w, h);
     }
 
     drawLine(x1: number, y1: number, x2: number, y2: number, lw: number) {
+        x1 = Math.round(x1 + this.offset.x), y1 = Math.round(y1 + this.offset.y);
+        x2 = Math.round(x2 + this.offset.x), y2 = Math.round(y2 + this.offset.y);
+
         this.context.lineWidth = lw;
         this.context.beginPath();
         this.context.moveTo(x1, y1);
@@ -53,20 +82,43 @@ export class Renderer {
         this.context.closePath();
     }
 
-    fillShape(points: Vec2[]) {
+    drawShape(points: Vec2[]) {
         let start = points[0];
+        this.context.lineWidth = 1;
         this.context.beginPath();
-        this.context.lineWidth = 0;
-        this.context.moveTo(start.x, start.y);
+        this.context.moveTo(Math.round(start.x + this.offset.x), Math.round(start.y + this.offset.y));
         for (let i = 1, l = points.length; i < l; i++) {
             let c = points[i];
-            this.context.lineTo(c.x, c.y);
+            this.context.lineTo(Math.round(c.x + this.offset.x), Math.round(c.y + this.offset.y));
+        }
+        this.context.closePath();
+        this.context.stroke();
+    }
+
+    fillShape(points: Vec2[], color: string) {
+        let start = points[0];
+        this.context.beginPath();
+        this.color(color);
+        this.context.moveTo(Math.round(start.x + this.offset.x), Math.round(start.y + this.offset.y));
+        for (let i = 1, l = points.length; i < l; i++) {
+            let c = points[i];
+            this.context.lineTo(Math.round(c.x + this.offset.x), Math.round(c.y + this.offset.y));
         }
         this.context.closePath();
         this.context.fill();
     }
 
-    getContent(): string {
-        return this.canvas.toDataURL();
+    translate(x: number, y: number): void {
+        this.offset.x = Math.round(x);
+        this.offset.y = Math.round(y);
+    }
+
+    translateVec2(vec: Vec2) {
+        this.offset.x = vec.x;
+        this.offset.y = vec.y;
+    }
+
+    getCanvas(): HTMLCanvasElement {
+        return this.canvas;
     }
 }

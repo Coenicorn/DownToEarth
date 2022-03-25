@@ -1,5 +1,5 @@
 import { GameObject } from "./entity";
-import { Renderer } from "../renderer";
+import { Camera } from "../renderer";
 
 export default class EntityManager {
     entities: GameObject[];
@@ -11,12 +11,18 @@ export default class EntityManager {
     update(deltaTime: number) {
         this.entities.forEach(entity => {
             entity.update(deltaTime);
+
+            this.entities.forEach(entityColliding => {
+                if (entity == entityColliding) return;
+
+                entity.collide(entityColliding);
+            })
         });
     }
 
-    render(renderer: Renderer) {
+    render(camera: Camera) {
         this.entities.forEach(entity => {
-            entity.render(renderer);
+            entity.render(camera);
         });
     }
 
