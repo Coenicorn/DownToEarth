@@ -60,7 +60,7 @@ class Chunk {
         this.mesh = createLineMeshFromPoints(points);
 
         // render level to cache, smooth level with color
-        this.renderer.fillShape(points, "#4d4d4d");
+        this.renderer.fillShape(points, "green");
 
         // wireframe view of chunks
         // this.renderer.drawShape(points);
