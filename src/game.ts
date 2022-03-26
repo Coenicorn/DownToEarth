@@ -1,8 +1,9 @@
 import InputHandler from "./inputHandler";
-import { GameObject, Player, Rock } from "./gameobject/entity";
+import { Player, Rock } from "./gameobject/entity";
 import EntityManager from "./gameobject/entityManager";
-import { Camera, Renderer } from "./renderer";
+import { Camera, Renderer, loadImages } from "./renderer";
 import { Level } from "./level";
+import { StoredAssets } from "./types";
 
 let entityManager: EntityManager;
 let player: Player;
@@ -10,6 +11,7 @@ let inputHandler: InputHandler;
 let renderer: Renderer;
 let level: Level;
 let camera: Camera;
+let globalImages: StoredAssets;
 
 let running = true;
 let deltaTime = 0;
@@ -24,15 +26,14 @@ function update() {
 
     entityManager.update(deltaTime);
 
-    level.update(player);
+    // level.update(player);
 }
 
 function render() {
     camera.viewport.clear();
     camera.viewport.translate(0, 0);
 
-    // draw background
-    // renderer.drawSprite(BackgroundImage, 0, 0);
+    camera.viewport.drawSprite(globalImages["Background1"], 0, 0, camera.viewport.width, camera.viewport.height);
 
     camera.viewport.translateVec2(camera.position);
 
@@ -63,7 +64,11 @@ function startGameLoop(): void {
     if (running) requestAnimationFrame(startGameLoop);
 }
 
-function init() {
+async function init() {
+    globalImages = await loadImages([
+        "Background1"
+    ], "./src/assets");
+
     renderer = new Renderer(screen.width, screen.height);
     renderer.mount("#main");
 
@@ -86,11 +91,11 @@ function init() {
     });
 
     level = new Level(player, camera, {
-        segmentLength: 20,
+        segmentLength: 50,
         maxLevelHeight: 200,
         noiseSampleSize: 500,
-        maxAllowedBackwardsMotion: 10,
-        maxChunkSegments: 20,
+        renderDistance: 1000,
+        maxChunkSegments: 100,
         levelDownExtension: 500
     });
 

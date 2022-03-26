@@ -1,5 +1,27 @@
-import { GameObject, Line } from "./gameobject/entity";
-import { Vec2 } from "./types";
+import { GameObject } from "./gameobject/entity";
+import { StoredAssets, Vec2 } from "./types";
+import { Line } from "./mesh";
+
+export async function loadImages(imageSources: string[], domain: string): Promise<StoredAssets> {
+    let processedImages: StoredAssets = {};
+
+    for (let i = 0, l = imageSources.length; i < l; i++) {
+        let currentSauce = imageSources[i] as string;
+
+        let img = await new Promise<HTMLImageElement>(resolve => {
+            let t = new Image();
+
+            t.src = `${domain}/${currentSauce}.png`;
+
+            t.onload = () => resolve(t);
+            t.onerror = () => { throw new Error("Image not found") };
+        });
+
+        processedImages[currentSauce] = img;
+    }
+
+    return processedImages;
+}
 
 export class Camera {
     position: Vec2;

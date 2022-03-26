@@ -3,18 +3,19 @@ import SimplexNoise from "./simplex-noise";
 import { Camera, Renderer } from "./renderer";
 import { LevelConfig, Vec2 } from "./types";
 import { Player } from "./gameobject/entity";
+import { Line, createLineMeshFromPoints, createLine } from "./mesh";
 
 // level split up in chunks
 class Chunk {
     position: number;
     renderer: Renderer;
-    points: Vec2[];
+    mesh: Line[];
     config: LevelConfig;
 
     constructor(pos: number, config: LevelConfig, noiseInstance: SimplexNoise) {
         this.position = pos;
 
-        this.points = [];
+        this.mesh = [];
         this.config = config;
 
         this.renderer = new Renderer(this.config.maxChunkSegments * this.config.segmentLength, this.config.maxLevelHeight + this.config.levelDownExtension);
@@ -23,7 +24,7 @@ class Chunk {
     }
 
     generateNoiseLayout(noiseInstance: SimplexNoise) {
-        this.points = [];
+        let points: Vec2[] = [];
         this.renderer.clear();
 
         let xOffset = 0;
@@ -48,24 +49,33 @@ class Chunk {
 
             let newY = noiseValue;
 
-            this.points.push({ x: newX, y: newY });
+            points.push({ x: newX, y: newY });
 
             xOffset += this.config.segmentLength;
         }
 
-        this.points.push({ x: xOffset - this.config.segmentLength, y: this.config.maxLevelHeight + this.config.levelDownExtension });
-        this.points.push({ x: 0, y: this.config.maxLevelHeight + this.config.levelDownExtension });
+        points.push({ x: xOffset - this.config.segmentLength, y: this.config.maxLevelHeight + this.config.levelDownExtension });
+        points.push({ x: 0, y: this.config.maxLevelHeight + this.config.levelDownExtension });
+
+        this.mesh = createLineMeshFromPoints(points);
 
         // render level to cache
-        this.renderer.fillShape(this.points, "#4d4d4d");
-        // this.renderer.drawShape(this.points);
+        this.renderer.fillShape(points, "#4d4d4d");
+        this.renderer.drawShape(points);
+
+        for (let i = 0; i < this.mesh.length; i++) {
+            let x = this.mesh[i].p2.x;
+            let y = this.mesh[i].p2.y;
+            x -= (this.mesh[i].p2.x - this.mesh[i].p1.x) / 2;
+            y -= (this.mesh[i].p2.y - this.mesh[i].p1.y) / 2;
+            this.renderer.drawLine(x, y, x + this.mesh[i].surfaceNormal.x, y + this.mesh[i].surfaceNormal.y, 5);
+        }
     }
 }
 
 export class Level {
     chunks: Chunk[];
     noiseInstance: SimplexNoise;
-    player: Player;
     positionSinceLastChunkGeneration: number;
     camera: Camera;
 
@@ -74,7 +84,6 @@ export class Level {
     constructor(player: Player, camera: Camera, config: LevelConfig) {
         this.chunks = [];
         this.noiseInstance = new SimplexNoise();
-        this.player = player;
         this.positionSinceLastChunkGeneration = camera.viewport.width;
         this.camera = camera;
 
@@ -84,12 +93,12 @@ export class Level {
     }
 
     makeLayout() {
-        let xOffset = 0;
+        let xOffset = -this.config.renderDistance - this.camera.viewport.width / 2;
 
         while (true) {
 
             // multiply maxchunksize by segmentlength to get actual level length
-            if (xOffset > screen.width + this.config.maxChunkSegments * this.config.segmentLength * 2) break;
+            if (xOffset > screen.width / 2 + this.config.renderDistance) break;
 
             this.chunks.push(new Chunk(xOffset, this.config, this.noiseInstance));
 
@@ -109,6 +118,8 @@ export class Level {
     }
 
     update(player: Player) {
+        // the player can only move to the right
+
         let playerX = player.position.x + this.camera.viewport.width / 2;
 
         if (playerX >= this.positionSinceLastChunkGeneration) {
@@ -121,6 +132,10 @@ export class Level {
 
             this.chunks.push(newChunk);
         }
+    }
+
+    getPositionFromLeft(x: number): number {
+        return (x - this.camera.viewport.width / 2) - this.chunks[0].position;
     }
 
     getChunk(x: number): Chunk | undefined {

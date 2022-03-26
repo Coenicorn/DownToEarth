@@ -16,9 +16,10 @@
         "outDir": "./lib",
         "removeComments": true,
         "strictNullChecks": true,
-        "alwaysStrict": true
+        "alwaysStrict": true,
+        "allowSyntheticDefaultImports": true,
     },
     "include": [
-        "src/*/**.ts",
+        "src/**/*",
     ]
 }

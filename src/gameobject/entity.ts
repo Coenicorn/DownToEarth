@@ -1,35 +1,6 @@
 import { Camera, Renderer } from "../renderer";
 import { Vec2 } from "../types";
-
-// switch from position + dimension to line mesh
-export class Line {
-    p1: Vec2;
-    p2: Vec2;
-
-    constructor(p1: Vec2, p2: Vec2) {
-        this.p1 = p1;
-        this.p2 = p2;
-    }
-
-    intersect(line: Line): boolean {
-        // desperately needs fixing
-
-        let d = (this.p1.x - this.p2.x) * (line.p1.y - line.p2.y) - (this.p1.y - this.p2.y) * (line.p1.y - line.p2.y);
-
-        if (d < 0.1) return false;
-
-        return false;
-    }
-}
-
-function createRectangle(x: number, y: number, w: number, h: number): Line[] {
-    return [
-        new Line({ x: x, y: y }, { x: x + w, y: y }),
-        new Line({ x: x + w, y: y }, { x: x + w, y: y + h }),
-        new Line({ x: x + w, y: y + h }, { x: x, y: y + h }),
-        new Line({ x: x, y: y + h }, { x: x, y: y })
-    ];
-}
+import { Line, createRectangle } from "../mesh";
 
 export abstract class GameObject {
     position: Vec2;
@@ -86,6 +57,8 @@ export class Player extends GameObject {
     constructor(pos: Vec2, dim: Vec2) {
         super(pos, createRectangle(pos.x, pos.y, dim.x, dim.y));
 
+        console.log(this.mesh);
+
         this.speed = 2;
         this.maxSpeed = 10;
 
@@ -119,7 +92,7 @@ export class Player extends GameObject {
         camera.viewport.translate(camera.viewport.width / 2, camera.viewport.height / 2);
 
         // bounding box visualization
-        camera.viewport.color("black");
+        camera.viewport.color("green");
         camera.viewport.drawLineMesh(this.mesh, true);
 
         camera.viewport.translateVec2(camera.position);
