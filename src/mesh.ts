@@ -14,6 +14,12 @@ class Line {
     private getSurfaceNormal(): Vec2 {
         let fromAToB = { x: this.p2.x - this.p1.x, y: this.p2.y - this.p1.y }
 
+        // normalize
+        let magnitude = Math.sqrt(Math.pow(fromAToB.x, 2) + Math.pow(fromAToB.y, 2));
+
+        fromAToB.x /= magnitude;
+        fromAToB.y /= magnitude;
+
         return { x: fromAToB.y, y: -fromAToB.x }
     }
 

@@ -59,17 +59,20 @@ class Chunk {
 
         this.mesh = createLineMeshFromPoints(points);
 
-        // render level to cache
+        // render level to cache, smooth level with color
         this.renderer.fillShape(points, "#4d4d4d");
-        this.renderer.drawShape(points);
 
-        for (let i = 0; i < this.mesh.length; i++) {
-            let x = this.mesh[i].p2.x;
-            let y = this.mesh[i].p2.y;
-            x -= (this.mesh[i].p2.x - this.mesh[i].p1.x) / 2;
-            y -= (this.mesh[i].p2.y - this.mesh[i].p1.y) / 2;
-            this.renderer.drawLine(x, y, x + this.mesh[i].surfaceNormal.x, y + this.mesh[i].surfaceNormal.y, 5);
-        }
+        // wireframe view of chunks
+        // this.renderer.drawShape(points);
+
+        // for visualizing normals
+        // for (let i = 0; i < this.mesh.length; i++) {
+        //     let x = this.mesh[i].p2.x;
+        //     let y = this.mesh[i].p2.y;
+        //     x -= (this.mesh[i].p2.x - this.mesh[i].p1.x) / 2;
+        //     y -= (this.mesh[i].p2.y - this.mesh[i].p1.y) / 2;
+        //     this.renderer.drawLine(x, y, x + this.mesh[i].surfaceNormal.x * 20, y + this.mesh[i].surfaceNormal.y * 20, 1);
+        // }
     }
 }
 

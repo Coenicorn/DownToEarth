@@ -57,8 +57,6 @@ export class Player extends GameObject {
     constructor(pos: Vec2, dim: Vec2) {
         super(pos, createRectangle(pos.x, pos.y, dim.x, dim.y));
 
-        console.log(this.mesh);
-
         this.speed = 2;
         this.maxSpeed = 10;
 

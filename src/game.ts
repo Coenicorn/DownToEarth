@@ -91,7 +91,7 @@ async function init() {
     });
 
     level = new Level(player, camera, {
-        segmentLength: 50,
+        segmentLength: 10,
         maxLevelHeight: 200,
         noiseSampleSize: 500,
         renderDistance: 1000,
