@@ -1,6 +1,8 @@
-import { KeyBinding } from "./types";
+interface KeyBinding {
+    [key: string]: Function;
+}
 
-export default class InputHandler {
+export class InputHandler {
     keys: string[];
     keyBinds: KeyBinding;
 

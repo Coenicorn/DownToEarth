@@ -1,80 +1,82 @@
-import { Camera, Renderer } from "../renderer";
 import { Vec2 } from "../types";
-import { Line, createRectangle } from "../mesh";
+import { Renderer } from "../renderer";
+import { Level } from "../level";
 
 export abstract class GameObject {
     position: Vec2;
     velocity: Vec2;
     acceleration: Vec2;
 
-    mesh: Line[];
+    dimensions: Vec2;
 
-    constructor(pos: Vec2, mesh: Line[]) {
+    /**
+     * @param {Vec2} pos The initial position of the GameObject
+     * @param {Vec2} dim The width and height of the GameObject as a vector
+     */
+
+    constructor(pos: Vec2, dim: Vec2) {
         this.position = pos;
         this.velocity = { x: 0, y: 0 };
-        this.acceleration = { x: 0, y: 0 }
-        this.mesh = mesh;
+        this.acceleration = { x: 0, y: 0 };
+
+        this.dimensions = dim;
     }
 
-    abstract update(deltaTime: number): void;
-    abstract render(camera: Camera): void;
-    abstract collide(mesh: Line[]): void;
+    abstract update(): void;
+    abstract render(renderer: Renderer): void;
+
+    collideLevel(level: Level): void {
+        let c = level.getChunkAt(this.position.x);
+
+        console.log(c);
+    }
 }
 
 export class Rock extends GameObject {
     constructor(pos: Vec2, dim: Vec2) {
-        super(pos, createRectangle(pos.x, pos.y, dim.x, dim.y));
+        super(pos, dim);
     }
 
-    update(deltaTime: number): void {
-        this.position.x += this.velocity.x * deltaTime;
-        this.position.y += this.velocity.y * deltaTime;
+    update(): void {
 
-        this.velocity.x *= 0.9;
-        this.velocity.y *= 0.9;
     }
 
-    collide(mesh: Line[]): void {
-        for (let line of mesh) {
-            for (let line2 of this.mesh) {
-                line.intersect(line2)
-            }
-        }
-    }
+    render(renderer: Renderer): void {
+        renderer.translate(this.position);
 
-    render(camera: Camera): void {
-        camera.viewport.color("red");
-        camera.viewport.drawLineMesh(this.mesh, true);
+        renderer.color("green");
+        renderer.drawRectangle(this.position.x, this.position.y, this.dimensions.x, this.dimensions.y);
+
+        renderer.translate({ x: 0, y: 0 });
     }
 }
 
 export class Player extends GameObject {
-    maxSpeed: number;
-    speed: number;
-
     alive: boolean;
 
-    constructor(pos: Vec2, dim: Vec2) {
-        super(pos, createRectangle(pos.x, pos.y, dim.x, dim.y));
+    speed: number;
+    maxSpeed: number;
 
-        this.speed = 2;
-        this.maxSpeed = 10;
+    constructor(pos: Vec2, dim: Vec2) {
+        super(pos, dim);
 
         this.alive = true;
+        this.speed = 2;
+        this.maxSpeed = 6;
     }
 
-    update(deltaTime: number): void {
+    update(): void {
         this.velocity.x += this.acceleration.x;
         this.velocity.y += this.acceleration.y;
 
-        // limit velocity
+        // limit speed
         if (this.velocity.x > this.maxSpeed) this.velocity.x = this.maxSpeed;
         if (this.velocity.x < -this.maxSpeed) this.velocity.x = -this.maxSpeed;
         if (this.velocity.y > this.maxSpeed) this.velocity.y = this.maxSpeed;
         if (this.velocity.y < -this.maxSpeed) this.velocity.y = -this.maxSpeed;
 
-        this.position.x += this.velocity.x * deltaTime;
-        this.position.y += this.velocity.y * deltaTime;
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
 
         if (this.acceleration.x == 0) this.velocity.x *= 0.9;
         if (this.acceleration.y == 0) this.velocity.y *= 0.9;
@@ -82,48 +84,32 @@ export class Player extends GameObject {
         this.acceleration = { x: 0, y: 0 }
     }
 
-    collide(mesh: Line[]): void {
-        return;
+    render(renderer: Renderer): void {
+        renderer.translateToScreenCoordinates({ x: renderer.center.x, y: renderer.center.y });
+
+        renderer.color("red");
+        renderer.drawRectangle(0, 0, this.dimensions.x, this.dimensions.y);
+
+        renderer.translate({ x: 0, y: 0 });
     }
 
-    render(camera: Camera): void {
-        camera.viewport.translate(camera.viewport.width / 2, camera.viewport.height / 2);
-
-        // bounding box visualization
-        camera.viewport.color("green");
-        camera.viewport.drawLineMesh(this.mesh, true);
-
-        camera.viewport.translateVec2(camera.position);
-    }
-
-    move(type: number) {
-        switch (type) {
+    move(dir: number): void {
+        switch (dir) {
             case 0:
-                // jump
+                // up
+                this.acceleration.y = -this.speed;
                 break;
             case 1:
-                // left
-
-                this.acceleration.x -= this.speed;
-
+                // down
+                this.acceleration.y = this.speed;
                 break;
             case 2:
-                // right
-
-                this.acceleration.x += this.speed;
-
+                // left
+                this.acceleration.x = -this.speed;
                 break;
             case 3:
-                // up
-
-                this.acceleration.y += this.speed;
-
-                break;
-            case 4:
-                // down
-
-                this.acceleration.y -= this.speed;
-
+                // right
+                this.acceleration.x = this.speed;
                 break;
         }
     }

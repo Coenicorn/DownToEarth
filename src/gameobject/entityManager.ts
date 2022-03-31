@@ -1,38 +1,33 @@
 import { GameObject } from "./entity";
-import { Camera } from "../renderer";
+import { Renderer } from "../renderer";
+import { Level } from "../level";
 
-export default class EntityManager {
-    entities: GameObject[];
+export class EntityManager {
+    private entities: GameObject[];
 
     constructor() {
         this.entities = [];
     }
 
-    update(deltaTime: number) {
-        this.entities.forEach(entity => {
-            entity.update(deltaTime);
-
-            this.entities.forEach(entityColliding => {
-                if (entity == entityColliding) return;
-
-                entity.collide(entityColliding.mesh);
-            })
-        });
-    }
-
-    render(camera: Camera) {
-        this.entities.forEach(entity => {
-            entity.render(camera);
-        });
-    }
-
-    newEntity(entity: GameObject): GameObject {
+    newEntity(entity: GameObject): void {
         if (!this.entities.includes(entity)) this.entities.push(entity);
-
-        return entity;
     }
 
-    removeEntity(entity: GameObject) {
+    removeEntity(entity: GameObject): void {
         if (this.entities.includes(entity)) this.entities.splice(this.entities.indexOf(entity), 1);
+    }
+
+    update(level: Level): void {
+        this.entities.forEach(entity => {
+            entity.update();
+
+            entity.collideLevel(level);
+        });
+    }
+
+    render(renderer: Renderer): void {
+        this.entities.forEach(entity => {
+            entity.render(renderer);
+        });
     }
 }

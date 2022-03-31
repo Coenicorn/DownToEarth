@@ -1,6 +1,9 @@
-import { GameObject } from "./gameobject/entity";
-import { StoredAssets, Vec2 } from "./types";
-import { Line } from "./mesh";
+import { Vec2 } from "./types";
+import { Line } from "./gameObject/physics";
+
+interface StoredAssets {
+    [key: string]: HTMLImageElement;
+}
 
 export async function loadImages(imageSources: string[], domain: string): Promise<StoredAssets> {
     let processedImages: StoredAssets = {};
@@ -25,21 +28,14 @@ export async function loadImages(imageSources: string[], domain: string): Promis
 
 export class Camera {
     position: Vec2;
-    speed: number;
-    viewport: Renderer;
 
-    constructor(pos: Vec2, speed: number, view: Renderer) {
+    constructor(pos: Vec2) {
         this.position = pos;
-        this.speed = speed;
-        this.viewport = view;
     }
 
-    follow(entity: GameObject) {
-        this.position.x = -entity.position.x;
-        this.position.y = -entity.position.y;
-
-        this.position.x += this.viewport.width / 2;
-        this.position.y += this.viewport.height / 2;
+    moveTo(pos: Vec2): void {
+        this.position.x = -pos.x;
+        this.position.y = -pos.y;
     }
 }
 
@@ -50,9 +46,12 @@ export class Renderer {
     width: number;
     height: number;
 
-    offset: Vec2;
+    private offset: Vec2;
+    center: Vec2;
 
-    constructor(width: number, height: number) {
+    camera: Camera;
+
+    constructor(width: number, height: number, camera: Camera) {
         this.canvas = document.createElement("canvas");
         this.context = this.canvas.getContext("2d")!;
 
@@ -62,6 +61,9 @@ export class Renderer {
         this.canvas.style.zIndex = "-10";
 
         this.offset = { x: 0, y: 0 }
+        this.center = { x: this.width / 2, y: this.height / 2 }
+
+        this.camera = camera;
     }
 
     mount(elm: string) {
@@ -90,11 +92,11 @@ export class Renderer {
         this.context.lineWidth = 1;
         this.context.beginPath();
         let start = mesh[0];
-        this.context.moveTo(start.p1.x + this.offset.x, start.p1.y + this.offset.y);
-        this.context.lineTo(start.p2.x + this.offset.x, start.p2.y + this.offset.y);
+        this.context.moveTo(Math.round(start.a.x + this.offset.x), Math.round(start.a.y + this.offset.y));
+        this.context.lineTo(Math.round(start.b.x + this.offset.x), Math.round(start.b.y + this.offset.y));
         for (let i = 1, l = mesh.length; i < l; i++) {
             let c = mesh[i];
-            this.context.lineTo(c.p2.x + this.offset.x, c.p2.y + this.offset.y);
+            this.context.lineTo(Math.round(c.b.x + this.offset.x), Math.round(c.b.y + this.offset.y));
         }
         this.context.closePath();
         if (fill) this.context.fill();
@@ -132,10 +134,9 @@ export class Renderer {
         this.context.stroke();
     }
 
-    fillShape(points: Vec2[], color: string) {
+    fillShape(points: Vec2[]) {
         let start = points[0];
         this.context.beginPath();
-        this.color(color);
         this.context.moveTo(Math.round(start.x + this.offset.x), Math.round(start.y + this.offset.y));
         for (let i = 1, l = points.length; i < l; i++) {
             let c = points[i];
@@ -145,14 +146,14 @@ export class Renderer {
         this.context.fill();
     }
 
-    translate(x: number, y: number): void {
-        this.offset.x = Math.round(x);
-        this.offset.y = Math.round(y);
+    translate(vec: Vec2) {
+        this.offset.x = vec.x + this.camera.position.x + this.center.x;
+        this.offset.y = vec.y + this.camera.position.y + this.center.y;
     }
 
-    translateVec2(vec: Vec2) {
-        this.offset.x = vec.x;
-        this.offset.y = vec.y;
+    translateToScreenCoordinates(pos: Vec2) {
+        this.offset.x = pos.x;
+        this.offset.y = pos.y;
     }
 
     getCanvas(): HTMLCanvasElement {

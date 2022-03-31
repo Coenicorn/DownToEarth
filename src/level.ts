@@ -1,166 +1,115 @@
+import { LevelConfig, Vec2 } from "./types";
+import { Line, lineMeshFromPoints } from "./gameObject/physics";
+import { Renderer, Camera } from "./renderer";
 import SimplexNoise from "./simplex-noise";
 
-import { Camera, Renderer } from "./renderer";
-import { LevelConfig, Vec2 } from "./types";
-import { Player } from "./gameobject/entity";
-import { Line, createLineMeshFromPoints, createLine } from "./mesh";
-
-// level split up in chunks
 class Chunk {
-    position: number;
-    renderer: Renderer;
     mesh: Line[];
     config: LevelConfig;
+    xPosition: number;
+    renderer: Renderer;
 
-    constructor(pos: number, config: LevelConfig, noiseInstance: SimplexNoise) {
-        this.position = pos;
-
-        this.mesh = [];
+    constructor(noiseInstance: SimplexNoise, config: LevelConfig, xPosition: number) {
+        this.xPosition = xPosition;
         this.config = config;
+        this.renderer = new Renderer(config.maxChunkSegments * config.segmentLength, config.maxLevelHeight + this.config.levelDownExtension, new Camera({ x: 0, y: 0 }));
+        this.mesh = [];
 
-        this.renderer = new Renderer(this.config.maxChunkSegments * this.config.segmentLength, this.config.maxLevelHeight + this.config.levelDownExtension);
-
-        this.generateNoiseLayout(noiseInstance);
+        this.makeLayout(noiseInstance);
     }
 
-    generateNoiseLayout(noiseInstance: SimplexNoise) {
+    makeLayout(noiseInstance: SimplexNoise): void {
         let points: Vec2[] = [];
         this.renderer.clear();
 
-        let xOffset = 0;
+        // generate the maximum allowed chunk segments
+        for (let i = 0, l = this.config.maxChunkSegments; i <= l; i++) {
+            let newX, newY, noiseValue, div;
 
-        while (true) {
-            // check if level is big enough to stop
-            if (xOffset >= this.config.maxChunkSegments * this.config.segmentLength + this.config.segmentLength) break;
+            newX = i * this.config.segmentLength;
 
-            let newX = xOffset;
-
-            // generate new point with y as noise value
-
-            // get noise value from current x position
-            let noiseValue = noiseInstance.noise2D((this.position + newX) / this.config.noiseSampleSize, 0);
-            let div = 0;
-            for (let i = 1; i < 3; i++) {
-                noiseValue += noiseInstance.noise2D(((this.position + newX) / this.config.noiseSampleSize) * i, 0) / Math.pow(2, i);
-                div += 1 / Math.pow(2, i);
+            // generate noise sample for y position
+            noiseValue = noiseInstance.noise2D((this.xPosition + newX) / this.config.noiseSampleSize, 0);
+            div = 0;
+            for (let ii = 1; ii < 3; ii++) {
+                noiseValue += noiseInstance.noise2D(((this.xPosition + newX) / this.config.noiseSampleSize) * ii, 0) / Math.pow(2, ii);
+                div += 1 / Math.pow(2, ii);
             }
             noiseValue /= 1 + div;
             noiseValue = noiseValue * this.config.maxLevelHeight / 2 + this.config.maxLevelHeight / 2;
 
-            let newY = noiseValue;
 
+            newY = noiseValue;
             points.push({ x: newX, y: newY });
-
-            xOffset += this.config.segmentLength;
         }
 
-        points.push({ x: xOffset - this.config.segmentLength, y: this.config.maxLevelHeight + this.config.levelDownExtension });
-        points.push({ x: 0, y: this.config.maxLevelHeight + this.config.levelDownExtension });
+        // for full chunk, including bottom rectangle
+        points.push({ x: this.config.maxChunkSegments * this.config.segmentLength, y: this.config.levelDownExtension });
+        points.push({ x: 0, y: this.config.levelDownExtension });
 
-        this.mesh = createLineMeshFromPoints(points);
+        this.mesh = lineMeshFromPoints(points);
 
-        // render level to cache, smooth level with color
-        this.renderer.fillShape(points, "green");
-
-        // wireframe view of chunks
-        // this.renderer.drawShape(points);
-
-        // for visualizing normals
-        // for (let i = 0; i < this.mesh.length; i++) {
-        //     let x = this.mesh[i].p2.x;
-        //     let y = this.mesh[i].p2.y;
-        //     x -= (this.mesh[i].p2.x - this.mesh[i].p1.x) / 2;
-        //     y -= (this.mesh[i].p2.y - this.mesh[i].p1.y) / 2;
-        //     this.renderer.drawLine(x, y, x + this.mesh[i].surfaceNormal.x * 20, y + this.mesh[i].surfaceNormal.y * 20, 1);
-        // }
+        this.renderer.color("green");
+        this.renderer.fillShape(points);
     }
 }
 
 export class Level {
+    config: LevelConfig;
     chunks: Chunk[];
     noiseInstance: SimplexNoise;
-    positionSinceLastChunkGeneration: number;
-    camera: Camera;
+    renderer: Renderer;
 
-    config: LevelConfig;
-
-    constructor(player: Player, camera: Camera, config: LevelConfig) {
+    constructor(config: LevelConfig, renderer: Renderer) {
+        this.config = config;
         this.chunks = [];
         this.noiseInstance = new SimplexNoise();
-        this.positionSinceLastChunkGeneration = camera.viewport.width;
-        this.camera = camera;
+        this.renderer = renderer;
 
-        this.config = config;
-
-        this.makeLayout();
+        this.generateChunks();
     }
 
-    makeLayout() {
-        let xOffset = -this.config.renderDistance - this.camera.viewport.width / 2;
+    generateChunks(): void {
+        let xOffset = -this.config.maxChunkSegments * this.config.segmentLength;
 
         while (true) {
+            if (xOffset > this.renderer.width + this.config.maxChunkSegments * this.config.segmentLength) break;
 
-            // multiply maxchunksize by segmentlength to get actual level length
-            if (xOffset > screen.width / 2 + this.config.renderDistance) break;
+            this.chunks.push(new Chunk(this.noiseInstance, this.config, xOffset));
 
-            this.chunks.push(new Chunk(xOffset, this.config, this.noiseInstance));
-
-            // multiply maxchunksize by segmentlength to get actual level length
             xOffset += this.config.maxChunkSegments * this.config.segmentLength;
         }
-
-        this.positionSinceLastChunkGeneration = this.chunks[this.chunks.length - 1].position;
     }
 
-    renderLevel() {
-        for (let chunk of this.chunks) {
-            this.camera.viewport.drawSprite(chunk.renderer.getCanvas(), chunk.position, this.camera.viewport.height - this.config.maxLevelHeight);
-        }
+    renderLevel(): void {
+        this.renderer.translate({ x: 0, y: 0 });
 
-        this.camera.viewport.color("red");
+        this.chunks.forEach(chunk => {
+            this.renderer.drawSprite(chunk.renderer.getCanvas(), chunk.xPosition, 0);
+        });
     }
 
-    update(player: Player) {
-        // the player can only move to the right
-
-        let playerX = player.position.x + this.camera.viewport.width / 2;
-
-        if (playerX >= this.positionSinceLastChunkGeneration) {
-            this.positionSinceLastChunkGeneration += this.config.maxChunkSegments * this.config.segmentLength;
-
-            let newChunk = this.chunks.shift() as Chunk;
-
-            newChunk.position = this.positionSinceLastChunkGeneration;
-            newChunk.generateNoiseLayout(this.noiseInstance);
-
-            this.chunks.push(newChunk);
-        }
-    }
-
-    getPositionFromLeft(x: number): number {
-        return (x - this.camera.viewport.width / 2) - this.chunks[0].position;
-    }
-
-    getChunk(x: number): Chunk | undefined {
-        // get the chunk the coordinate lies in
+    getChunkAt(x: number): Chunk | undefined {
         let self = this;
 
-        function searchChunkArray(chunks: Chunk[], start: number, end: number): Chunk | undefined {
-            if (start >= end) return;
+        function a(chunks: Chunk[], start: number, end: number): Chunk | undefined {
+            if (start > end) return;
 
             let mid = Math.floor((start + end) / 2);
 
-            if (x > chunks[mid].position && x < chunks[mid].position + self.config.segmentLength * self.config.maxChunkSegments) {
-                return chunks[0];
+            let chunk = chunks[mid];
+
+            let xMin = chunk.xPosition;
+            let xMax = chunk.xPosition + self.config.segmentLength * self.config.maxChunkSegments;
+
+            if (x >= xMin && x <= xMax) {
+                return chunk;
             }
 
-            if (x > chunks[mid].position) {
-                return searchChunkArray(chunks, mid + 1, end);
-            } else {
-                return searchChunkArray(chunks, start, mid - 1);
-            }
+            if (x > xMin) return a(chunks, mid + 1, end);
+            else return a(chunks, start, mid - 1);
         }
 
-        return searchChunkArray(this.chunks, 0, this.chunks.length);
+        return a(this.chunks, 0, this.chunks.length);
     }
 }

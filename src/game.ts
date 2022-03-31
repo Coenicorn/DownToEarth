@@ -1,108 +1,96 @@
-import InputHandler from "./inputHandler";
-import { Player, Rock } from "./gameobject/entity";
-import EntityManager from "./gameobject/entityManager";
-import { Camera, Renderer, loadImages } from "./renderer";
-import { Level } from "./level";
+import { Renderer, Camera, loadImages } from "./renderer";
+import { InputHandler } from "./inputHandler";
+import { EntityManager } from "./gameObject/entityManager";
+import { Player, Rock } from "./gameObject/entity";
 import { StoredAssets } from "./types";
+import { Level } from "./level";
 
+let camera: Camera;
+let renderer: Renderer;
+let inputHandler: InputHandler;
 let entityManager: EntityManager;
 let player: Player;
-let inputHandler: InputHandler;
-let renderer: Renderer;
+let storedAssets: StoredAssets;
 let level: Level;
-let camera: Camera;
-let globalImages: StoredAssets;
 
 let running = true;
-let deltaTime = 0;
 const fps = 1000 / 60;
-let lastUpdate = Date.now();
-let renderTimer = 0;
+let lastUpdate: number;
 
 function update() {
     inputHandler.handleKeys();
 
-    camera.follow(player);
+    entityManager.update(level);
 
-    entityManager.update(deltaTime);
-
-    // level.update(player);
+    camera.moveTo(player.position);
 }
 
 function render() {
-    camera.viewport.clear();
-    camera.viewport.translate(0, 0);
+    renderer.clear();
 
-    camera.viewport.drawSprite(globalImages["Background1"], 0, 0, camera.viewport.width, camera.viewport.height);
-
-    camera.viewport.translateVec2(camera.position);
+    renderer.translateToScreenCoordinates({ x: 0, y: 0 });
+    renderer.drawSprite(storedAssets["Background1"], 0, 0, renderer.width, renderer.height);
 
     level.renderLevel();
 
-    entityManager.render(camera);
+    entityManager.render(renderer);
 }
 
 function startGameLoop(): void {
-
     let now = Date.now();
-    deltaTime = (now - lastUpdate) / fps;
-    renderTimer += now - lastUpdate;
+    let lag = now - lastUpdate;
     lastUpdate = now;
 
-    update();
+    while (lag >= 0) {
+
+        update();
+        lag -= fps;
+    }
 
     render();
 
-    if (renderTimer > fps) {
-        render();
-
-        document.getElementById("player-pos")!.innerHTML = `Player position: {${Math.round(player.position.x)}, ${Math.round(player.position.y)}}`
-
-        renderTimer = 0;
-    }
-
-    if (running) requestAnimationFrame(startGameLoop);
+    // if (running) requestAnimationFrame(startGameLoop);
 }
 
 async function init() {
-    globalImages = await loadImages([
+    storedAssets = await loadImages([
         "Background1"
     ], "./src/assets");
 
-    renderer = new Renderer(screen.width, screen.height);
+    camera = new Camera({ x: 0, y: 0 });
+    renderer = new Renderer(innerWidth, innerHeight, camera);
     renderer.mount("#main");
 
-    camera = new Camera({ x: 0, y: 0 }, 5, renderer);
+    entityManager = new EntityManager();
 
     player = new Player(
         { x: 0, y: 0 },
-        { x: 50, y: 50 }
+        { x: 50, y: 100 }
     );
 
-    entityManager = new EntityManager();
     entityManager.newEntity(player);
+    entityManager.newEntity(new Rock(
+        { x: 0, y: 0 },
+        { x: 200, y: 200 }
+    ))
 
     inputHandler = new InputHandler({
-        " ": () => player.move(0),
-        "a": () => player.move(1),
-        "d": () => player.move(2),
-        "s": () => player.move(3),
-        "w": () => player.move(4)
+        "w": () => player.move(0),
+        "a": () => player.move(2),
+        "s": () => player.move(1),
+        "d": () => player.move(3)
     });
 
-    level = new Level(player, camera, {
-        segmentLength: 10,
-        maxLevelHeight: 200,
-        noiseSampleSize: 500,
-        renderDistance: 1000,
-        maxChunkSegments: 100,
-        levelDownExtension: 500
-    });
+    level = new Level({
+        segmentLength: 20,
+        maxLevelHeight: 500,
+        noiseSampleSize: 1000,
+        renderDistance: 500,
+        maxChunkSegments: 50,
+        levelDownExtension: 1500
+    }, renderer);
 
-    entityManager.newEntity(new Rock(
-        { x: 100, y: 0 },
-        { x: 100, y: 100 }
-    ))
+    lastUpdate = Date.now();
 
     startGameLoop();
 }
