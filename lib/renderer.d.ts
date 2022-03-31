@@ -1,5 +1,5 @@
-import { Vec2 } from "./types";
 import { Line } from "./gameObject/physics";
+import { Vec2 } from "./gameObject/physics";
 interface StoredAssets {
     [key: string]: HTMLImageElement;
 }
@@ -22,7 +22,8 @@ export declare class Renderer {
     clear(): void;
     color(color: string): void;
     drawRectangle(x: number, y: number, w: number, h: number): void;
-    drawLineMesh(mesh: Line[], fill: boolean): void;
+    drawLineMesh(mesh: Line[]): void;
+    fillLineMesh(mesh: Line[]): void;
     drawSprite(sprite: HTMLImageElement | HTMLCanvasElement, x: number, y: number, w?: number, h?: number): void;
     drawLine(x1: number, y1: number, x2: number, y2: number, lw: number): void;
     drawShape(points: Vec2[]): void;
