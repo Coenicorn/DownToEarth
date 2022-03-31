@@ -1,5 +1,5 @@
-import { Vec2 } from "./types";
 import { Line } from "./gameObject/physics";
+import { Vec2 } from "./gameObject/physics"
 
 interface StoredAssets {
     [key: string]: HTMLImageElement;
@@ -88,7 +88,7 @@ export class Renderer {
         this.context.fillRect(x, y, w, h);
     }
 
-    drawLineMesh(mesh: Line[], fill: boolean) {
+    drawLineMesh(mesh: Line[]) {
         this.context.lineWidth = 1;
         this.context.beginPath();
         let start = mesh[0];
@@ -99,8 +99,20 @@ export class Renderer {
             this.context.lineTo(Math.round(c.b.x + this.offset.x), Math.round(c.b.y + this.offset.y));
         }
         this.context.closePath();
-        if (fill) this.context.fill();
         this.context.stroke();
+    }
+
+    fillLineMesh(mesh: Line[]) {
+        this.context.beginPath();
+        let start = mesh[0];
+        this.context.moveTo(Math.round(start.a.x + this.offset.x), Math.round(start.a.y + this.offset.y));
+        this.context.lineTo(Math.round(start.b.x + this.offset.x), Math.round(start.b.y + this.offset.y));
+        for (let i = 1, l = mesh.length; i < l; i++) {
+            let c = mesh[i];
+            this.context.lineTo(Math.round(c.b.x + this.offset.x), Math.round(c.b.y + this.offset.y));
+        }
+        this.context.closePath();
+        this.context.fill();
     }
 
     drawSprite(sprite: HTMLImageElement | HTMLCanvasElement, x: number, y: number, w: number = sprite.width, h: number = sprite.height) {

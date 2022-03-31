@@ -19,6 +19,9 @@ export class EntityManager {
 
     update(level: Level): void {
         this.entities.forEach(entity => {
+            // gravity
+            if (!entity.onground) entity.acceleration.y += .5;
+
             entity.update();
 
             entity.collideLevel(level);

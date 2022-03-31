@@ -13,6 +13,8 @@ let player: Player;
 let storedAssets: StoredAssets;
 let level: Level;
 
+let GRAVITY = 3;
+
 let running = true;
 const fps = 1000 / 60;
 let lastUpdate: number;
@@ -49,7 +51,7 @@ function startGameLoop(): void {
 
     render();
 
-    // if (running) requestAnimationFrame(startGameLoop);
+    if (running) requestAnimationFrame(startGameLoop);
 }
 
 async function init() {
@@ -64,25 +66,24 @@ async function init() {
     entityManager = new EntityManager();
 
     player = new Player(
-        { x: 0, y: 0 },
+        { x: 0, y: -300 },
         { x: 50, y: 100 }
     );
 
     entityManager.newEntity(player);
-    entityManager.newEntity(new Rock(
-        { x: 0, y: 0 },
-        { x: 200, y: 200 }
-    ))
+    // entityManager.newEntity(new Rock(
+    //     { x: 0, y: 0 },
+    //     { x: 200, y: 200 }
+    // ))
 
     inputHandler = new InputHandler({
-        "w": () => player.move(0),
-        "a": () => player.move(2),
-        "s": () => player.move(1),
-        "d": () => player.move(3)
+        "a": () => player.move(0),
+        "d": () => player.move(1),
+        " ": () => player.move(2)
     });
 
     level = new Level({
-        segmentLength: 20,
+        segmentLength: 10,
         maxLevelHeight: 500,
         noiseSampleSize: 1000,
         renderDistance: 500,

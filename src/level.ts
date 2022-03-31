@@ -1,7 +1,9 @@
-import { LevelConfig, Vec2 } from "./types";
+import { LevelConfig } from "./types";
 import { Line, lineMeshFromPoints } from "./gameObject/physics";
 import { Renderer, Camera } from "./renderer";
 import SimplexNoise from "./simplex-noise";
+import { Vec2 } from "./gameObject/physics";
+import { Player } from "./gameObject/entity";
 
 class Chunk {
     mesh: Line[];
@@ -26,17 +28,18 @@ class Chunk {
         for (let i = 0, l = this.config.maxChunkSegments; i <= l; i++) {
             let newX, newY, noiseValue, div;
 
-            newX = i * this.config.segmentLength;
+            // get the position relative to the x position of the chunk
+            newX = i * this.config.segmentLength + this.xPosition;
 
             // generate noise sample for y position
-            noiseValue = noiseInstance.noise2D((this.xPosition + newX) / this.config.noiseSampleSize, 0);
+            noiseValue = noiseInstance.noise2D((newX) / this.config.noiseSampleSize, 0);
             div = 0;
             for (let ii = 1; ii < 3; ii++) {
-                noiseValue += noiseInstance.noise2D(((this.xPosition + newX) / this.config.noiseSampleSize) * ii, 0) / Math.pow(2, ii);
+                noiseValue += noiseInstance.noise2D(((newX) / this.config.noiseSampleSize) * ii, 0) / Math.pow(2, ii);
                 div += 1 / Math.pow(2, ii);
             }
             noiseValue /= 1 + div;
-            noiseValue = noiseValue * this.config.maxLevelHeight / 2 + this.config.maxLevelHeight / 2;
+            noiseValue = noiseValue * this.config.maxLevelHeight / 2;
 
 
             newY = noiseValue;
@@ -44,13 +47,13 @@ class Chunk {
         }
 
         // for full chunk, including bottom rectangle
-        points.push({ x: this.config.maxChunkSegments * this.config.segmentLength, y: this.config.levelDownExtension });
-        points.push({ x: 0, y: this.config.levelDownExtension });
+        points.push({ x: this.xPosition + this.config.maxChunkSegments * this.config.segmentLength, y: this.config.levelDownExtension });
+        points.push({ x: this.xPosition, y: this.config.levelDownExtension });
 
         this.mesh = lineMeshFromPoints(points);
 
-        this.renderer.color("green");
-        this.renderer.fillShape(points);
+        // this.renderer.color("green");
+        // this.renderer.fillShape(points);
     }
 }
 
@@ -69,6 +72,16 @@ export class Level {
         this.generateChunks();
     }
 
+    // checkPositionFromLeft(x: number): number {
+    //     let chunkX = this.chunks[0].xPosition;
+
+    // }
+
+    update(player: Player): void {
+        // check if new chunk has to be generated
+
+    }
+
     generateChunks(): void {
         let xOffset = -this.config.maxChunkSegments * this.config.segmentLength;
 
@@ -85,19 +98,22 @@ export class Level {
         this.renderer.translate({ x: 0, y: 0 });
 
         this.chunks.forEach(chunk => {
-            this.renderer.drawSprite(chunk.renderer.getCanvas(), chunk.xPosition, 0);
+            this.renderer.color("green");
+            this.renderer.fillLineMesh(chunk.mesh);
         });
     }
 
     getChunkAt(x: number): Chunk | undefined {
         let self = this;
 
-        function a(chunks: Chunk[], start: number, end: number): Chunk | undefined {
-            if (start > end) return;
+        if (x == 0) x += 1;
 
+        function a(chunks: Chunk[], start: number, end: number): Chunk | undefined {
             let mid = Math.floor((start + end) / 2);
 
             let chunk = chunks[mid];
+
+            if (!chunk) return;
 
             let xMin = chunk.xPosition;
             let xMax = chunk.xPosition + self.config.segmentLength * self.config.maxChunkSegments;
