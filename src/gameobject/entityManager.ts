@@ -2,11 +2,19 @@ import { GameObject } from "./entity";
 import { Renderer } from "../renderer";
 import { Level } from "../level";
 
-export class EntityManager {
+class EntityManager {
     private entities: GameObject[];
 
     constructor() {
         this.entities = [];
+    }
+
+    getEntity(id: string): GameObject | null {
+        for (let entity of this.entities) {
+            if (entity.id == id) return entity;
+        }
+
+        return null;
     }
 
     newEntity(entity: GameObject): void {
@@ -17,12 +25,9 @@ export class EntityManager {
         if (this.entities.includes(entity)) this.entities.splice(this.entities.indexOf(entity), 1);
     }
 
-    update(level: Level): void {
+    update(level: Level, deltaTime: number): void {
         this.entities.forEach(entity => {
-            // gravity
-            if (!entity.onground) entity.acceleration.y += .5;
-
-            entity.update();
+            entity.update(deltaTime);
 
             entity.collideLevel(level);
         });
@@ -34,3 +39,7 @@ export class EntityManager {
         });
     }
 }
+
+const entityManager = new EntityManager();
+
+export { entityManager };

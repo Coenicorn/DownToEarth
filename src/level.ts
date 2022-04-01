@@ -72,21 +72,40 @@ export class Level {
         this.generateChunks();
     }
 
-    // checkPositionFromLeft(x: number): number {
-    //     let chunkX = this.chunks[0].xPosition;
+    checkPlayerCamera(player: Player): void {
+        // check if the camera is allowed to move to the player (if the player is far enough away from the left
+        // side of the level)
+        let playerX, posFromLeft, posFromRight, chunkX;
 
-    // }
+        chunkX = this.chunks[0].xPosition;
+        playerX = player.position.x;
 
-    update(player: Player): void {
-        // check if new chunk has to be generated
+        posFromLeft = playerX - this.renderer.center.x - chunkX;
+        posFromRight = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength - playerX - this.renderer.center.x;
 
+        // Check if the player is close enough to the left side of the level to not move the camera
+        if (posFromLeft > 0) this.renderer.camera.moveTo(player.position);
+        else this.renderer.camera.moveTo({ x: chunkX + this.renderer.center.x, y: player.position.y });
+
+        // stop player from falling off map on the left side
+        if (player.position.x <= chunkX) player.position.x = chunkX;
+
+        // check if new chunk needs to be generated
+        if (posFromRight < 0) {
+            let c = this.chunks.shift()!;
+
+            c.xPosition = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength;
+            c.makeLayout(this.noiseInstance);
+
+            this.chunks.push(c);
+        }
     }
 
     generateChunks(): void {
-        let xOffset = -this.config.maxChunkSegments * this.config.segmentLength;
+        let xOffset = -this.config.maxChunkSegments * this.config.segmentLength - this.renderer.center.x;
 
         while (true) {
-            if (xOffset > this.renderer.width + this.config.maxChunkSegments * this.config.segmentLength) break;
+            if (xOffset > this.renderer.width + this.config.maxChunkSegments * this.config.segmentLength + this.config.renderDistance) break;
 
             this.chunks.push(new Chunk(this.noiseInstance, this.config, xOffset));
 
@@ -95,7 +114,7 @@ export class Level {
     }
 
     renderLevel(): void {
-        this.renderer.translate({ x: 0, y: 0 });
+        this.renderer.translateRelative({ x: 0, y: 0 });
 
         this.chunks.forEach(chunk => {
             this.renderer.color("green");

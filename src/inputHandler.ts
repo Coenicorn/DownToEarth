@@ -24,6 +24,10 @@ export class InputHandler {
         } catch (e) { }
     }
 
+    releaseAllkeys() {
+        this.keys = [];
+    }
+
     handleKeys() {
         for (let key of this.keys) {
             try {

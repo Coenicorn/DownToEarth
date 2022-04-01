@@ -33,6 +33,10 @@ export class Camera {
         this.position = pos;
     }
 
+    /**
+     * Move to the position given in world coordinates, not in screen coordinates
+     */
+
     moveTo(pos: Vec2): void {
         this.position.x = -pos.x;
         this.position.y = -pos.y;
@@ -51,27 +55,20 @@ export class Renderer {
 
     camera: Camera;
 
-    constructor(width: number, height: number, camera: Camera) {
-        this.canvas = document.createElement("canvas");
+    constructor(width: number, height: number, camera: Camera, canvasID?: string) {
+        this.canvas = canvasID ? document.getElementById(canvasID) as HTMLCanvasElement : document.createElement("canvas");
         this.context = this.canvas.getContext("2d")!;
 
-        this.width = this.canvas.width = width;
-        this.height = this.canvas.height = height;
+        this.width = width;
+        this.height = height;
 
-        this.canvas.style.zIndex = "-10";
+        this.canvas.width = width;
+        this.canvas.height = height;
 
         this.offset = { x: 0, y: 0 }
         this.center = { x: this.width / 2, y: this.height / 2 }
 
         this.camera = camera;
-    }
-
-    mount(elm: string) {
-        let domElm = document.querySelector(elm);
-
-        if (!domElm) throw new Error("Error mounting Renderer to DOM element, wrong selector");
-
-        domElm.appendChild(this.canvas);
     }
 
     clear() {
@@ -158,7 +155,7 @@ export class Renderer {
         this.context.fill();
     }
 
-    translate(vec: Vec2) {
+    translateRelative(vec: Vec2) {
         this.offset.x = vec.x + this.camera.position.x + this.center.x;
         this.offset.y = vec.y + this.camera.position.y + this.center.y;
     }
