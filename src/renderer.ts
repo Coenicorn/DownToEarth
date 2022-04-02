@@ -26,7 +26,7 @@ export async function loadImages(imageSources: string[], domain: string): Promis
     return processedImages;
 }
 
-export class Camera {
+class Camera {
     position: Vec2;
 
     constructor(pos: Vec2) {
@@ -43,7 +43,7 @@ export class Camera {
     }
 }
 
-export class Renderer {
+class Renderer {
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
 
@@ -169,3 +169,5 @@ export class Renderer {
         return this.canvas;
     }
 }
+
+export const renderer = new Renderer(screen.width, screen.height, new Camera({ x: 0, y: 0 }), "gameScreen");

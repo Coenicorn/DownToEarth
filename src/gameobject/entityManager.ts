@@ -1,6 +1,5 @@
 import { GameObject } from "./entity";
-import { Renderer } from "../renderer";
-import { Level } from "../level";
+import { level } from "../level";
 
 class EntityManager {
     private entities: GameObject[];
@@ -25,17 +24,15 @@ class EntityManager {
         if (this.entities.includes(entity)) this.entities.splice(this.entities.indexOf(entity), 1);
     }
 
-    update(level: Level, deltaTime: number): void {
+    update(deltaTime: number): void {
         this.entities.forEach(entity => {
             entity.update(deltaTime);
-
-            entity.collideLevel(level);
         });
     }
 
-    render(renderer: Renderer): void {
+    render(): void {
         this.entities.forEach(entity => {
-            entity.render(renderer);
+            entity.render();
         });
     }
 }

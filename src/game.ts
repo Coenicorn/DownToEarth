@@ -1,16 +1,13 @@
-import { Renderer, Camera, loadImages } from "./renderer";
+import { renderer, loadImages } from "./renderer";
 import { InputHandler } from "./inputHandler";
 import { entityManager } from "./gameObject/entityManager";
 import { Player, Rock } from "./gameObject/entity";
 import { StoredAssets } from "./types";
-import { Level } from "./level";
+import { level } from "./level";
 
-let camera: Camera;
-let renderer: Renderer;
 let inputHandler: InputHandler;
 let player: Player;
 let storedAssets: StoredAssets;
-let level: Level;
 
 let menu: HTMLDivElement;
 let resumeButton: HTMLDivElement;
@@ -24,7 +21,7 @@ let renderTimer: number;
 function update() {
     inputHandler.handleKeys();
 
-    entityManager.update(level, deltaTime);
+    entityManager.update(deltaTime);
 
     level.checkPlayerCamera(player);
 }
@@ -32,12 +29,12 @@ function update() {
 function render() {
     renderer.clear();
 
-    // renderer.translateToScreenCoordinates({ x: 0, y: 0 });
-    // renderer.drawSprite(storedAssets["Background1"], 0, 0, renderer.width, renderer.height);
+    renderer.translateToScreenCoordinates({ x: 0, y: 0 });
+    renderer.drawSprite(storedAssets["Background1"], 0, 0, renderer.width, renderer.height);
 
     level.renderLevel();
 
-    entityManager.render(renderer);
+    entityManager.render();
 }
 
 function startGameLoop(): void {
@@ -87,21 +84,22 @@ function addEventListeners() {
 
 async function init() {
     storedAssets = await loadImages([
-        "Background1"
+        "Background1",
+        "rock1",
+        "player"
     ], "./src/assets");
-
-    camera = new Camera({ x: 0, y: 0 });
-    renderer = new Renderer(screen.width, screen.height, camera, "gameScreen");
 
     player = new Player(
         { x: 0, y: -300 },
-        { x: 50, y: 100 }
+        { x: 50, y: 100 },
+        storedAssets["player"]
     );
 
     entityManager.newEntity(player);
     entityManager.newEntity(new Rock(
         { x: 0, y: -500 },
-        200
+        200,
+        storedAssets["rock1"]
     ));
 
     inputHandler = new InputHandler({
@@ -117,15 +115,6 @@ async function init() {
             }
         }
     });
-
-    level = new Level({
-        segmentLength: 10,
-        maxLevelHeight: 700,
-        noiseSampleSize: 2000,
-        renderDistance: 500,
-        maxChunkSegments: 50,
-        levelDownExtension: 1500
-    }, renderer);
 
     initDom();
     addEventListeners();

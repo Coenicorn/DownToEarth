@@ -1,7 +1,6 @@
-import { Renderer } from "../renderer";
-import { Level } from "../level";
-import { Vec2, intersectsAABBLine, lineMeshFromPoints } from "./physics";
-import { entityManager } from "./entityManager";
+import { renderer } from "../renderer";
+import { Vec2, intersectsAABBLine } from "./physics";
+import { level } from "../level";
 
 export abstract class GameObject {
     position: Vec2;
@@ -11,13 +10,14 @@ export abstract class GameObject {
     onground: boolean;
     maxSpeed: number;
     id: string;
+    sprite: HTMLImageElement;
 
     /**
      * @param {Vec2} pos The initial position of the GameObject
      * @param {Vec2} dim The width and height of the GameObject as a vector
      */
 
-    constructor(pos: Vec2, dim: Vec2, maxSpeed: number, id: string) {
+    constructor(pos: Vec2, dim: Vec2, maxSpeed: number, id: string, sprite: HTMLImageElement) {
         this.position = pos;
         this.dimensions = dim;
         this.velocity = { x: 0, y: 0 };
@@ -25,11 +25,12 @@ export abstract class GameObject {
         this.onground = false;
         this.maxSpeed = maxSpeed;
         this.id = id;
+        this.sprite = sprite;
+
+        this.init();
     }
 
     update(deltaTime: number): void {
-        this.tick();
-
         this.velocity.x += this.acceleration.x;
         this.velocity.y += this.acceleration.y;
 
@@ -40,60 +41,59 @@ export abstract class GameObject {
         this.position.x += this.velocity.x * deltaTime;
         this.position.y += this.velocity.y * deltaTime;
 
-        if (this.acceleration.x == 0) this.velocity.x *= 0.9;
-        if (this.acceleration.y == 0) this.velocity.y *= 0.9;
-
         this.acceleration = { x: 0, y: 0 }
 
         this.onground = false;
+
+        this.tick();
     }
 
-    collideLevel(level: Level): void {
-        // get chunks player is in
-        let chunks = [];
-        chunks.push(level.getChunkAt(this.position.x));
-        chunks.push(level.getChunkAt(this.position.x + this.dimensions.x));
-
-        // for each line segment in said chunks, check for collisions of all line segments of the AABB
-        chunks.forEach(chunk => {
-            chunk?.mesh.forEach(line => {
-                while (intersectsAABBLine(line, this)) {
-                    this.velocity.y = 0;
-
-                    this.position.x += line.surfaceNormal.x * .5;
-                    this.position.y += line.surfaceNormal.y * .5;
-                    this.velocity.x += line.surfaceNormal.x * .5;
-
-                    // 0.5 because anything higher causes the player to vibrate on the ground as it moves it high enough
-                    // for the rounding at rendering to render it a pixel higher
-                    // this.position.y -= .4;
-
-                    this.onground = true;
-                }
-            });
-        });
-    }
-
-    abstract tick(): void;
-    abstract render(renderer: Renderer): void;
-}
-
-export class Rock extends GameObject {
-    constructor(pos: Vec2, size: number) {
-        super(pos, { x: size, y: size }, 10, "rock");
-    }
-
-    render(renderer: Renderer): void {
+    render(): void {
         renderer.translateRelative(this.position);
 
-        renderer.color("magenta");
+        renderer.color("red");
         renderer.drawRectangle(0, 0, this.dimensions.x, this.dimensions.y);
+        renderer.drawSprite(this.sprite, 0, 0, this.dimensions.x, this.dimensions.y);
 
         renderer.translateRelative({ x: 0, y: 0 });
     }
 
+    abstract init(): void;
+    abstract tick(): void;
+}
+
+export class Rock extends GameObject {
+    mass: number
+
+    constructor(pos: Vec2, size: number, sprite: HTMLImageElement) {
+        super(pos, { x: size, y: size }, 10, "rock", sprite);
+
+        this.mass = size;
+    }
+
+    init(): void {
+        this.velocity = {
+            x: Math.round(Math.random() * 10 - 5),
+            y: 0
+        }
+    }
+
     tick(): void {
-        if (!this.onground) this.acceleration.y = .1;
+        // apply gravitational force 
+        if (!this.onground) this.acceleration.y += 10 / this.mass;
+
+        // get chunks player is in
+        let lines = level.getCollidingLines(this);
+
+        if (!lines.length) return;
+
+        while (intersectsAABBLine(lines[0], this)) {
+            this.position.y -= .5;
+        }
+
+        this.onground = true;
+
+        this.velocity.y *= -.9;
     }
 }
 
@@ -102,26 +102,34 @@ export class Player extends GameObject {
 
     speed: number;
 
-    constructor(pos: Vec2, dim: Vec2) {
-        super(pos, dim, 10, "player");
+    constructor(pos: Vec2, dim: Vec2, sprite: HTMLImageElement) {
+        super(pos, dim, 10, "player", sprite);
 
         this.alive = true;
         this.speed = 2;
     }
 
-    tick(): void {
-        if (!this.onground) this.acceleration.y = 1;
-
-        this.velocity.x = 5;
+    init(): void {
+        return;
     }
 
-    render(renderer: Renderer): void {
-        renderer.translateRelative(this.position);
+    tick(): void {
+        if (!this.onground) this.velocity.y += .7;
 
-        renderer.color("red");
-        renderer.drawRectangle(0, 0, this.dimensions.x, this.dimensions.y);
+        if (this.acceleration.x == 0) this.velocity.x *= 0.9;
 
-        renderer.translateRelative({ x: 0, y: 0 });
+        // level collision
+        let lines = level.getCollidingLines(this);
+
+        for (let i = 0, l = lines.length; i < l; i++) {
+            while (intersectsAABBLine(lines[i], this)) {
+                this.position.y -= .5;
+            }
+
+            this.onground = true;
+
+            this.velocity.y = 0;
+        }
     }
 
     move(dir: number): void {
