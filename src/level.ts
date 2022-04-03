@@ -1,24 +1,22 @@
 import { LevelConfig } from "./types";
-import { AABB, intersectsAABB, intersectsAABBLine, Line, lineMeshFromPoints } from "./gameObject/physics";
 import { renderer } from "./renderer";
 import SimplexNoise from "./simplex-noise";
-import { Vec2 } from "./gameObject/physics";
 import { Player } from "./gameObject/entity";
+import { Vec2, Line, Mesh } from "./gameObject/physics";
+import { AABB } from "./types";
 
 class Chunk {
-    mesh: Line[];
+    mesh: Mesh;
     config: LevelConfig;
     xPosition: number;
 
     constructor(noiseInstance: SimplexNoise, config: LevelConfig, xPosition: number) {
         this.xPosition = xPosition;
         this.config = config;
-        this.mesh = [];
-
-        this.makeLayout(noiseInstance);
+        this.mesh = this.makeLayout(noiseInstance);
     }
 
-    makeLayout(noiseInstance: SimplexNoise): void {
+    makeLayout(noiseInstance: SimplexNoise): Mesh {
         let points: Vec2[] = [];
 
         // generate the maximum allowed chunk segments
@@ -40,14 +38,14 @@ class Chunk {
 
 
             newY = noiseValue;
-            points.push({ x: newX, y: newY });
+            points.push(new Vec2(newX, newY));
         }
 
         // for full chunk, including bottom rectangle
-        points.push({ x: this.xPosition + this.config.maxChunkSegments * this.config.segmentLength, y: this.config.levelDownExtension });
-        points.push({ x: this.xPosition, y: this.config.levelDownExtension });
+        points.push(new Vec2(this.xPosition + this.config.maxChunkSegments * this.config.segmentLength, this.config.levelDownExtension));
+        points.push(new Vec2(this.xPosition, this.config.levelDownExtension));
 
-        this.mesh = lineMeshFromPoints(points);
+        return new Mesh(points);
     }
 }
 
@@ -77,7 +75,7 @@ class Level {
 
         // Check if the player is close enough to the left side of the level to not move the camera
         if (posFromLeft > 0) renderer.camera.moveTo(player.position);
-        else renderer.camera.moveTo({ x: chunkX + renderer.center.x, y: player.position.y });
+        else renderer.camera.moveTo(new Vec2(chunkX + renderer.center.x, player.position.y));
 
         // stop player from falling off map on the left side
         if (player.position.x <= chunkX) player.position.x = chunkX;
@@ -87,7 +85,9 @@ class Level {
             let c = this.chunks.shift()!;
 
             c.xPosition = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength;
-            c.makeLayout(this.noiseInstance);
+            c.mesh = c.makeLayout(this.noiseInstance);
+
+            console.log(c.xPosition)
 
             this.chunks.push(c);
         }
@@ -106,11 +106,11 @@ class Level {
     }
 
     renderLevel(): void {
-        renderer.translateRelative({ x: 0, y: 0 });
+        renderer.translateRelative(Vec2.zeroVector);
 
         this.chunks.forEach(chunk => {
             renderer.color("green");
-            renderer.fillLineMesh(chunk.mesh);
+            renderer.fillLineMesh(chunk.mesh.getMesh());
         });
     }
 
@@ -148,8 +148,8 @@ class Level {
 
         // for each line segment in said chunks, check for collisions of all line segments of the AABB
         chunks.forEach(chunk => {
-            chunk?.mesh.forEach(line => {
-                if (intersectsAABBLine(line, aabb)) lines.push(line);
+            chunk?.mesh.getMesh().forEach(line => {
+                if (line.intersectsAABB(aabb)) lines.push(line);
             });
         });
 

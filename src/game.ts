@@ -4,6 +4,7 @@ import { entityManager } from "./gameObject/entityManager";
 import { Player, Rock } from "./gameObject/entity";
 import { StoredAssets } from "./types";
 import { level } from "./level";
+import { Vec2 } from "./gameObject/physics";
 
 let inputHandler: InputHandler;
 let player: Player;
@@ -29,7 +30,7 @@ function update() {
 function render() {
     renderer.clear();
 
-    renderer.translateToScreenCoordinates({ x: 0, y: 0 });
+    renderer.translateToScreenCoordinates(Vec2.zeroVector);
     renderer.drawSprite(storedAssets["Background1"], 0, 0, renderer.width, renderer.height);
 
     level.renderLevel();
@@ -90,14 +91,14 @@ async function init() {
     ], "./src/assets");
 
     player = new Player(
-        { x: 0, y: -300 },
-        { x: 50, y: 100 },
+        new Vec2(0, -300),
+        new Vec2(50, 100),
         storedAssets["player"]
     );
 
     entityManager.newEntity(player);
     entityManager.newEntity(new Rock(
-        { x: 0, y: -500 },
+        new Vec2(0, -500),
         200,
         storedAssets["rock1"]
     ));

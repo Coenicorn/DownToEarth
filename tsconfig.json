@@ -25,6 +25,9 @@
         "lib": [
             "es2017",
             "dom"
+        ],
+        "typeRoots": [
+            "src/*.d.ts"
         ]
     },
     "include": [

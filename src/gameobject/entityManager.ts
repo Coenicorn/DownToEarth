@@ -1,5 +1,4 @@
 import { GameObject } from "./entity";
-import { level } from "../level";
 
 class EntityManager {
     private entities: GameObject[];

@@ -1,5 +1,4 @@
-import { Line } from "./gameObject/physics";
-import { Vec2 } from "./gameObject/physics"
+import { Line, Vec2, Mesh } from "./gameObject/physics";
 
 interface StoredAssets {
     [key: string]: HTMLImageElement;
@@ -65,8 +64,8 @@ class Renderer {
         this.canvas.width = width;
         this.canvas.height = height;
 
-        this.offset = { x: 0, y: 0 }
-        this.center = { x: this.width / 2, y: this.height / 2 }
+        this.offset = Vec2.zeroVector
+        this.center = new Vec2(this.width / 2, this.height / 2)
 
         this.camera = camera;
     }
@@ -170,4 +169,4 @@ class Renderer {
     }
 }
 
-export const renderer = new Renderer(screen.width, screen.height, new Camera({ x: 0, y: 0 }), "gameScreen");
+export const renderer = new Renderer(screen.width, screen.height, new Camera(Vec2.zeroVector), "gameScreen");
