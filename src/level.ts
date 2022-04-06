@@ -1,5 +1,5 @@
 import { LevelConfig } from "./types";
-import { renderer } from "./renderer";
+import { Renderer } from "./Renderer";
 import SimplexNoise from "./simplex-noise";
 import { Player } from "./gameObject/entity";
 import { Vec2, Line, Mesh } from "./gameObject/physics";
@@ -29,11 +29,11 @@ class Chunk {
             // generate noise sample for y position
             noiseValue = noiseInstance.noise2D((newX) / this.config.noiseSampleSize, 0);
             div = 0;
-            for (let ii = 1; ii < 3; ii++) {
+            for (let ii = 1; ii < 30; ii++) {
                 noiseValue += noiseInstance.noise2D(((newX) / this.config.noiseSampleSize) * ii, 0) / Math.pow(2, ii);
-                div += 1 / Math.pow(2, ii);
+                div += 1 / ii;
             }
-            noiseValue /= 1 + div;
+            noiseValue /= div;
             noiseValue = noiseValue * this.config.maxLevelHeight / 2;
 
 
@@ -70,12 +70,12 @@ class Level {
         chunkX = this.chunks[0].xPosition;
         playerX = player.position.x;
 
-        posFromLeft = playerX - renderer.center.x - chunkX;
-        posFromRight = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength - playerX - renderer.center.x;
+        posFromLeft = playerX - Renderer.center.x - chunkX;
+        posFromRight = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength - playerX - Renderer.center.x;
 
         // Check if the player is close enough to the left side of the level to not move the camera
-        if (posFromLeft > 0) renderer.camera.moveTo(player.position);
-        else renderer.camera.moveTo(new Vec2(chunkX + renderer.center.x, player.position.y));
+        if (posFromLeft > 0) Renderer.camera.moveTo(player.position);
+        else Renderer.camera.moveTo(new Vec2(chunkX + Renderer.center.x, player.position.y));
 
         // stop player from falling off map on the left side
         if (player.position.x <= chunkX) player.position.x = chunkX;
@@ -87,17 +87,15 @@ class Level {
             c.xPosition = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength;
             c.mesh = c.makeLayout(this.noiseInstance);
 
-            console.log(c.xPosition)
-
             this.chunks.push(c);
         }
     }
 
     generateChunks(): void {
-        let xOffset = -this.config.maxChunkSegments * this.config.segmentLength - renderer.center.x;
+        let xOffset = -this.config.maxChunkSegments * this.config.segmentLength - Renderer.center.x;
 
         while (true) {
-            if (xOffset > renderer.width + this.config.maxChunkSegments * this.config.segmentLength + this.config.renderDistance) break;
+            if (xOffset > Renderer.width + this.config.maxChunkSegments * this.config.segmentLength + this.config.renderDistance) break;
 
             this.chunks.push(new Chunk(this.noiseInstance, this.config, xOffset));
 
@@ -106,11 +104,11 @@ class Level {
     }
 
     renderLevel(): void {
-        renderer.translateRelative(Vec2.zeroVector);
+        Renderer.translateRelative(Vec2.zeroVector);
 
         this.chunks.forEach(chunk => {
-            renderer.color("green");
-            renderer.fillLineMesh(chunk.mesh.getMesh());
+            Renderer.color("green");
+            Renderer.fillLineMesh(chunk.mesh.getMesh());
         });
     }
 

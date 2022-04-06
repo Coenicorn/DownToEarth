@@ -4,25 +4,15 @@ interface StoredAssets {
     [key: string]: HTMLImageElement;
 }
 
-export async function loadImages(imageSources: string[], domain: string): Promise<StoredAssets> {
-    let processedImages: StoredAssets = {};
+export function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+        let t = new Image();
 
-    for (let i = 0, l = imageSources.length; i < l; i++) {
-        let currentSauce = imageSources[i] as string;
+        t.src = src;
 
-        let img = await new Promise<HTMLImageElement>(resolve => {
-            let t = new Image();
-
-            t.src = `${domain}/${currentSauce}.png`;
-
-            t.onload = () => resolve(t);
-            t.onerror = () => { throw new Error("Image not found") };
-        });
-
-        processedImages[currentSauce] = img;
-    }
-
-    return processedImages;
+        t.onload = () => resolve(t);
+        t.onerror = () => { throw new Error("Image not found") };
+    });
 }
 
 class Camera {
@@ -42,7 +32,7 @@ class Camera {
     }
 }
 
-class Renderer {
+export class CanvasView {
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
 
@@ -54,20 +44,30 @@ class Renderer {
 
     camera: Camera;
 
-    constructor(width: number, height: number, camera: Camera, canvasID?: string) {
+    constructor(camera: Camera, canvasID: string) {
         this.canvas = canvasID ? document.getElementById(canvasID) as HTMLCanvasElement : document.createElement("canvas");
         this.context = this.canvas.getContext("2d")!;
 
-        this.width = width;
-        this.height = height;
+        this.width = innerWidth;
+        this.height = innerHeight;
 
-        this.canvas.width = width;
-        this.canvas.height = height;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
 
-        this.offset = Vec2.zeroVector
-        this.center = new Vec2(this.width / 2, this.height / 2)
+        addEventListener("resize", this.resize.bind(this));
+
+        this.offset = Vec2.zeroVector;
+        this.center = new Vec2(this.width / 2, this.height / 2);
 
         this.camera = camera;
+    }
+
+    resize() {
+        this.width = innerWidth;
+        this.height = innerHeight;
+
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
     }
 
     clear() {
@@ -167,6 +167,13 @@ class Renderer {
     getCanvas(): HTMLCanvasElement {
         return this.canvas;
     }
+
+    screenToWorldCoordinates(pos: Vec2): Vec2 {
+        pos.add(this.camera.position);
+        pos.sub(this.center);
+
+        return pos;
+    }
 }
 
-export const renderer = new Renderer(screen.width, screen.height, new Camera(Vec2.zeroVector), "gameScreen");
+export const Renderer = new CanvasView(new Camera(Vec2.zeroVector), "gameScreen");

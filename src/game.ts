@@ -1,10 +1,11 @@
-import { renderer, loadImages } from "./renderer";
+import { Renderer, loadImage } from "./Renderer";
 import { InputHandler } from "./inputHandler";
 import { entityManager } from "./gameObject/entityManager";
 import { Player, Rock } from "./gameObject/entity";
 import { StoredAssets } from "./types";
 import { level } from "./level";
 import { Vec2 } from "./gameObject/physics";
+import generateBackgroundImage from "./background";
 
 let inputHandler: InputHandler;
 let player: Player;
@@ -28,10 +29,10 @@ function update() {
 }
 
 function render() {
-    renderer.clear();
+    Renderer.clear();
 
-    renderer.translateToScreenCoordinates(Vec2.zeroVector);
-    renderer.drawSprite(storedAssets["Background1"], 0, 0, renderer.width, renderer.height);
+    Renderer.translateToScreenCoordinates(Vec2.zeroVector);
+    Renderer.drawSprite(storedAssets["Background1"], 0, 0, Renderer.width, Renderer.height);
 
     level.renderLevel();
 
@@ -39,6 +40,8 @@ function render() {
 }
 
 function startGameLoop(): void {
+    if (!running) return;
+
     let now = Date.now();
     deltaTime = (now - lastUpdate) / fps;
     renderTimer += now - lastUpdate;
@@ -53,7 +56,7 @@ function startGameLoop(): void {
         renderTimer = 0;
     }
 
-    if (running) requestAnimationFrame(startGameLoop);
+    requestAnimationFrame(startGameLoop);
 }
 
 function initDom() {
@@ -84,11 +87,12 @@ function addEventListeners() {
 }
 
 async function init() {
-    storedAssets = await loadImages([
-        "Background1",
-        "rock1",
-        "player"
-    ], "./src/assets");
+    storedAssets = {} as StoredAssets;
+
+    storedAssets["rock1"] = await loadImage("./src/assets/rock1.png");
+    storedAssets["player"] = await loadImage("./src/assets/player.png");
+
+    storedAssets["Background1"] = await loadImage(generateBackgroundImage());
 
     player = new Player(
         new Vec2(0, -300),

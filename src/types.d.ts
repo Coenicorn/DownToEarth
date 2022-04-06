@@ -1,5 +1,5 @@
 export interface StoredAssets {
-    [key: string]: HTMLImageElement;
+    [index: string]: HTMLImageElement;
 }
 
 export interface KeyBinding {

@@ -3,7 +3,8 @@ module.exports = {
         main: "./src/game.ts"
     },
     output: {
-        filename: "main.min.js"
+        filename: "main.min.js",
+        path: __dirname + "/build/"
     },
     mode: "production",
     module: {

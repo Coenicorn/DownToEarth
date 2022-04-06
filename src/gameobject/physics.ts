@@ -157,11 +157,6 @@ class Mesh {
         x4 = aabb.position.x;
         y4 = aabb.position.y + aabb.dimensions.y;
 
-        // l1 = new Line(new Vec2(x1, y1), new Vec2(x2, y2));
-        // l2 = new Line(new Vec2(x2, y2), new Vec2(x3, y3));
-        // l3 = new Line(new Vec2(x3, y3), new Vec2(x4, y4));
-        // l4 = new Line(new Vec2(x4, y4), new Vec2(x1, y1));
-
         return new Mesh([
             new Vec2(x1, y1), new Vec2(x2, y2), new Vec2(x3, y3), new Vec2(x4, y4)
         ]);
