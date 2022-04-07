@@ -15,15 +15,6 @@ export interface LevelConfig {
     levelDownExtension: number
 }
 
-export declare class Vec2 {
-    x: number;
-    y: number;
-    add(v1: Vec2): void;
-    sub(v1: Vec2): void;
-    mult(v1: Vec2): void;
-    div(v1: Vec2): void;
-}
-
 export declare class Line {
     a: Vec2;
     b: Vec2;

@@ -1,0 +1,12 @@
+- Generate the background instead of using an image? It's all connected lines so that should be doable
+- Generate falling rocks
+- Fix jitter in level collision
+- Particle system (particle: color, position, velocity, lifespan)
+- Camera shake
+- Hole generation (shouldn't be terribly hard with the mesh system I use)
+- Lava following the player as a left boundary instead of a dead stop
+- Player sprite
+- Player animation...? (optional, would be cool though)
+- Menu screen (html/css preferably)
+- Better ground texture (don't know what yet)
+- Maybe find someone to do the art or to brainstorm about the art with?

@@ -31,8 +31,8 @@ function update() {
 function render() {
     Renderer.clear();
 
-    Renderer.translateToScreenCoordinates(Vec2.zeroVector);
-    Renderer.drawSprite(storedAssets["Background1"], 0, 0, Renderer.width, Renderer.height);
+    Renderer.translateToScreenCoordinates(new Vec2(Renderer.camera.position.x / 4, Renderer.camera.position.y / 4));
+    Renderer.drawSprite(storedAssets["Background1"], 0, 0);
 
     level.renderLevel();
 
