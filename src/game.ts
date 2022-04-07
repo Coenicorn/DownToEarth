@@ -6,6 +6,7 @@ import { StoredAssets } from "./types";
 import { level } from "./level";
 import { Vec2 } from "./gameObject/physics";
 import generateBackgroundImage from "./background";
+import { Time } from "./time";
 
 let inputHandler: InputHandler;
 let player: Player;
@@ -15,15 +16,47 @@ let menu: HTMLDivElement;
 let resumeButton: HTMLDivElement;
 
 let running = true;
-const fps = 1000 / 60;
-let lastUpdate: number;
-let deltaTime: number;
-let renderTimer: number;
+let rockTimer = 0;
+let rockChance = .5;
+
+// ------------------------------------------------------------
+// rock generation
+// ------------------------------------------------------------
+
+function generateRock(player: Player) {
+    // generate position for new rock in front of the player
+    let newPos = {
+        x: player.position.x + Math.random() * 500,
+        y: -600
+    };
+
+    let rock = new Rock(
+        newPos,
+        Math.round(Math.random() * 70) + 30,
+        storedAssets["rock1"],
+    )
+
+    entityManager.newEntity(rock);
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+
 
 function update() {
     inputHandler.handleKeys();
 
-    entityManager.update(deltaTime);
+    entityManager.update(Time.deltaTime);
+
+    rockTimer += 1;
+    if (rockTimer > 200 && Math.random() > rockChance) {
+        generateRock(player);
+        rockTimer = 0;
+        rockChance = 2;
+    } else {
+        // rockChance -= .05;
+    }
 
     level.checkPlayerCamera(player);
 }
@@ -31,7 +64,7 @@ function update() {
 function render() {
     Renderer.clear();
 
-    Renderer.translateToScreenCoordinates(new Vec2(Renderer.camera.position.x / 4, Renderer.camera.position.y / 4));
+    Renderer.translateToScreenCoordinates({ x: Renderer.camera.position.x / 4, y: Renderer.camera.position.y / 4 });
     Renderer.drawSprite(storedAssets["Background1"], 0, 0);
 
     level.renderLevel();
@@ -40,20 +73,15 @@ function render() {
 }
 
 function startGameLoop(): void {
-    if (!running) return;
-
-    let now = Date.now();
-    deltaTime = (now - lastUpdate) / fps;
-    renderTimer += now - lastUpdate;
-    lastUpdate = now;
+    Time.update();
 
     // for changes in fps, doesn't really help with testing though
-    update();
+    if (running) update();
 
-    if (renderTimer > fps) {
+    if (Time.canRender) {
         render();
 
-        renderTimer = 0;
+        Time.resetRendertimer();
     }
 
     requestAnimationFrame(startGameLoop);
@@ -67,11 +95,8 @@ function initDom() {
     resumeButton.onclick = () => {
         if (running) return;
 
-        renderTimer = 0;
-        lastUpdate = Date.now();
+        Time.reset();
         running = true;
-
-        startGameLoop();
 
         menu.style.visibility = "hidden";
     }
@@ -95,37 +120,24 @@ async function init() {
     storedAssets["Background1"] = await loadImage(generateBackgroundImage());
 
     player = new Player(
-        new Vec2(0, -300),
-        new Vec2(50, 100),
+        { x: 0, y: -300 },
+        { x: 50, y: 100 },
         storedAssets["player"]
     );
 
     entityManager.newEntity(player);
-    entityManager.newEntity(new Rock(
-        new Vec2(0, -500),
-        200,
-        storedAssets["rock1"]
-    ));
 
     inputHandler = new InputHandler({
         "a": () => player.move(0),
         "d": () => player.move(1),
         " ": () => player.move(2),
-        "r": () => {
-            if (!running) {
-                renderTimer = 0;
-                lastUpdate = Date.now();
-
-                startGameLoop();
-            }
-        }
     });
 
     initDom();
     addEventListeners();
 
-    renderTimer = 0;
-    lastUpdate = Date.now();
+    Time.reset();
+    Time.setFps(60);
 
     startGameLoop();
 }

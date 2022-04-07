@@ -1,8 +1,4 @@
-import { Line, Vec2, Mesh } from "./gameObject/physics";
-
-interface StoredAssets {
-    [key: string]: HTMLImageElement;
-}
+import { Line, Vec2 } from "./gameObject/physics";
 
 export function loadImage(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
@@ -56,8 +52,8 @@ export class CanvasView {
 
         addEventListener("resize", this.resize.bind(this));
 
-        this.offset = Vec2.zeroVector;
-        this.center = new Vec2(this.width / 2, this.height / 2);
+        this.offset = { x: 0, y: 0 }
+        this.center = { x: this.width / 2, y: this.height / 2 };
 
         this.camera = camera;
     }
@@ -169,11 +165,13 @@ export class CanvasView {
     }
 
     screenToWorldCoordinates(pos: Vec2): Vec2 {
-        pos.add(this.camera.position);
-        pos.sub(this.center);
+        pos.x += this.camera.position.x;
+        pos.y += this.camera.position.y;
+        pos.x += this.center.x;
+        pos.y += this.center.y;
 
         return pos;
     }
 }
 
-export const Renderer = new CanvasView(new Camera(Vec2.zeroVector), "gameScreen");
+export const Renderer = new CanvasView(new Camera({ x: 0, y: 0 }), "gameScreen");

@@ -38,12 +38,12 @@ class Chunk {
 
 
             newY = noiseValue;
-            points.push(new Vec2(newX, newY));
+            points.push({ x: newX, y: newY });
         }
 
         // for full chunk, including bottom rectangle
-        points.push(new Vec2(this.xPosition + this.config.maxChunkSegments * this.config.segmentLength, this.config.levelDownExtension));
-        points.push(new Vec2(this.xPosition, this.config.levelDownExtension));
+        points.push({ x: this.xPosition + this.config.maxChunkSegments * this.config.segmentLength, y: this.config.levelDownExtension });
+        points.push({ x: this.xPosition, y: this.config.levelDownExtension });
 
         return new Mesh(points);
     }
@@ -75,7 +75,7 @@ class Level {
 
         // Check if the player is close enough to the left side of the level to not move the camera
         if (posFromLeft > 0) Renderer.camera.moveTo(player.position);
-        else Renderer.camera.moveTo(new Vec2(chunkX + Renderer.center.x, player.position.y));
+        else Renderer.camera.moveTo({ x: chunkX + Renderer.center.x, y: player.position.y });
 
         // stop player from falling off map on the left side
         if (player.position.x <= chunkX) player.position.x = chunkX;
@@ -104,7 +104,7 @@ class Level {
     }
 
     renderLevel(): void {
-        Renderer.translateRelative(Vec2.zeroVector);
+        Renderer.translateRelative({ x: 0, y: 0 });
 
         this.chunks.forEach(chunk => {
             Renderer.color("green");

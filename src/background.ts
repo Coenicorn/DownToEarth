@@ -23,7 +23,7 @@ function getPointAtX(x: number): Vec2 {
     // generate noise point at given x position
     let y = noiseInstance.noise2D(x / sampleSize, 0) * (maxMountainHeight - minMountainHeight) / 2 + (maxMountainHeight - minMountainHeight) / 2;
 
-    return new Vec2(x, y);
+    return { x, y };
 }
 
 function generateBackgroundImage(): string {

@@ -10,7 +10,7 @@ class Particle {
 
     constructor(pos: Vec2, size: number, color: string, lifetime: number) {
         this.position = pos;
-        this.velocity = Vec2.zeroVector;
+        this.velocity = { x: 0, y: 0 };
         this.size = size;
         this.color = color;
         this.lifetime = lifetime;

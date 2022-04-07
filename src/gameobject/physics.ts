@@ -1,37 +1,6 @@
-class Vec2 {
+interface Vec2 {
     x: number;
     y: number;
-
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-    add(v1: Vec2): void {
-        this.x += v1.x;
-        this.y += v1.y;
-    }
-
-    sub(v1: Vec2): void {
-        this.x -= v1.x;
-        this.y -= v1.y;
-    }
-
-    mult(v1: Vec2): void {
-        this.x *= v1.x;
-        this.y *= v1.y;
-    }
-
-    div(v1: Vec2): void {
-        this.x /= v1.x;
-        this.y /= v1.y;
-    }
-
-    static get zeroVector(): Vec2 { return new Vec2(0, 0) }
-    static get down(): Vec2 { return new Vec2(0, 1) }
-    static get up(): Vec2 { return new Vec2(0, -1) }
-    static get left(): Vec2 { return new Vec2(-1, 0) }
-    static get right(): Vec2 { return new Vec2(1, 0) }
 }
 
 interface AABB {
@@ -58,7 +27,7 @@ class Line {
         fromAToB.x /= magnitude;
         fromAToB.y /= magnitude;
 
-        this.surfaceNormal = new Vec2(fromAToB.y, -fromAToB.x);
+        this.surfaceNormal = { x: fromAToB.y, y: -fromAToB.x };
     }
 
     intersectsLine(line: Line): Vec2 | undefined {
@@ -82,7 +51,7 @@ class Line {
 
         if (!(t >= 0 && t <= 1 && u >= 0 && u <= 1)) return;
 
-        let pos = new Vec2(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+        let pos = { x: x1 + t * (x2 - x1), y: y1 + t * (y2 - y1) };
 
         return pos;
     }
@@ -99,10 +68,10 @@ class Line {
         x4 = aabb.position.x;
         y4 = aabb.position.y + aabb.dimensions.y;
 
-        l1 = new Line(new Vec2(x1, y1), new Vec2(x2, y2));
-        l2 = new Line(new Vec2(x2, y2), new Vec2(x3, y3));
-        l3 = new Line(new Vec2(x3, y3), new Vec2(x4, y4));
-        l4 = new Line(new Vec2(x4, y4), new Vec2(x1, y1));
+        l1 = new Line({ x: x1, y: y1 }, { x: x2, y: y2 });
+        l2 = new Line({ x: x2, y: y2 }, { x: x3, y: y3 });
+        l3 = new Line({ x: x3, y: y3 }, { x: x4, y: y4 });
+        l4 = new Line({ x: x4, y: y4 }, { x: x1, y: y1 });
 
         return (
             this.intersectsLine(l1) != undefined ||
@@ -122,26 +91,26 @@ class Mesh {
 
         for (let i = 1, l = points.length; i < l; i++) {
             this.mesh.push(new Line(
-                new Vec2(
-                    points[i - 1].x,
-                    points[i - 1].y
-                ),
-                new Vec2(
-                    points[i].x,
-                    points[i].y
-                )
+                {
+                    x: points[i - 1].x,
+                    y: points[i - 1].y
+                },
+                {
+                    x: points[i].x,
+                    y: points[i].y
+                }
             ));
         }
 
         this.mesh.push(new Line(
-            new Vec2(
-                points[points.length - 1].x,
-                points[points.length - 1].y
-            ),
-            new Vec2(
-                points[0].x,
-                points[0].y
-            )
+            {
+                x: points[points.length - 1].x,
+                y: points[points.length - 1].y
+            },
+            {
+                x: points[0].x,
+                y: points[0].y
+            }
         ));
     }
 
@@ -158,7 +127,7 @@ class Mesh {
         y4 = aabb.position.y + aabb.dimensions.y;
 
         return new Mesh([
-            new Vec2(x1, y1), new Vec2(x2, y2), new Vec2(x3, y3), new Vec2(x4, y4)
+            { x: x1, y: y1 }, { x: x2, y: y2 }, { x: x3, y: y3 }, { x: x4, y: y4 }
         ]);
     }
 

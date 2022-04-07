@@ -1,55 +1,62 @@
-import { Vec2, Line } from "./physics";
-import { level } from "../level";
+import { Vec2 } from "./physics";
 import { GameObject } from "./entityManager";
 
 export class Rock extends GameObject {
+    mass: number;
+
     constructor(pos: Vec2, size: number, sprite: HTMLImageElement) {
-        super(pos, new Vec2(size, size), 10, "rock", sprite, size, 9.81);
+        super(pos, { x: size, y: size }, sprite);
+
+        this.mass = size;
     }
 
     init(): void {
-        this.velocity = new Vec2(
-            Math.round(Math.random() * 10 - 5),
-            0
-        );
     }
 
     tick(): void {
+        this.velocity.y += 5 / this.mass;
     }
 }
 
 export class Player extends GameObject {
     alive: boolean;
+    maxSpeed: number;
 
     speed: number;
 
     constructor(pos: Vec2, dim: Vec2, sprite: HTMLImageElement) {
-        super(pos, dim, 10, "player", sprite, 10, 9.81);
+        super(pos, dim, sprite);
 
         this.alive = true;
         this.speed = 2;
+        this.maxSpeed = 10;
     }
 
     init(): void {
-        return;
     }
 
     tick(): void {
+        if (this.velocity.x > this.maxSpeed) this.velocity.x = this.maxSpeed;
+        if (this.velocity.x < -this.maxSpeed) this.velocity.x = -this.maxSpeed;
+
+        this.velocity.x *= 0.95;
+
+        this.velocity.y += 1;
     }
 
     move(dir: number): void {
         switch (dir) {
             case 0:
                 // left
-                this.acceleration.x = -this.speed;
+                this.velocity.x -= this.speed;
                 break;
             case 1:
                 // right
-                this.acceleration.x = this.speed;
+                this.velocity.x += this.speed;
                 break;
             case 2:
                 // jump
-                if (this.onground) this.acceleration.y = -20;
+                if (this.onground) this.velocity.y -= 20;
                 break;
         }
     }

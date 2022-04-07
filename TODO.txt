@@ -10,3 +10,5 @@
 - Menu screen (html/css preferably)
 - Better ground texture (don't know what yet)
 - Maybe find someone to do the art or to brainstorm about the art with?
+- Fix screen resizing issues'
+- Time object with support for functions at specific time intervals
