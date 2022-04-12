@@ -15,20 +15,12 @@ export interface LevelConfig {
     levelDownExtension: number
 }
 
-export declare class Line {
-    a: Vec2;
-    b: Vec2;
-    surfaceNormal: Vec2;
-
-    intersectsLine(line: Line): Vec2 | undefined;
-    intersectsAABB(aabb: AABB): boolean;
-}
-
-export declare class Mesh {
-    private mesh: Line[];
+interface Vec2 {
+    x: number;
+    y: number;
 }
 
 export interface AABB {
     position: Vec2;
-    dimensions: Vec2;
+    dimensions: Vec2
 }

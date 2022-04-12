@@ -1,9 +1,9 @@
 import { LevelConfig } from "./types";
 import { Renderer } from "./Renderer";
 import SimplexNoise from "./simplex-noise";
-import { Player } from "./gameObject/entity";
 import { Vec2, Line, Mesh } from "./gameObject/physics";
 import { AABB } from "./types";
+import { Player } from "./gameObject/player";
 
 class Chunk {
     mesh: Mesh;
@@ -73,10 +73,6 @@ class Level {
         posFromLeft = playerX - Renderer.center.x - chunkX;
         posFromRight = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength - playerX - Renderer.center.x;
 
-        // Check if the player is close enough to the left side of the level to not move the camera
-        if (posFromLeft > 0) Renderer.camera.moveTo(player.position);
-        else Renderer.camera.moveTo({ x: chunkX + Renderer.center.x, y: player.position.y });
-
         // stop player from falling off map on the left side
         if (player.position.x <= chunkX) player.position.x = chunkX;
 
@@ -104,7 +100,7 @@ class Level {
     }
 
     renderLevel(): void {
-        Renderer.translateRelative({ x: 0, y: 0 });
+        Renderer.translate(Renderer.getScreenPosition({ x: 0, y: 0 }));
 
         this.chunks.forEach(chunk => {
             Renderer.color("green");

@@ -43,6 +43,10 @@ class time {
         return this.fps;
     }
 
+    getFrameTime(): number {
+        return this.frameTime;
+    }
+
     get canRender(): boolean {
         return (this.renderTimer > this.desiredFrameTime);
     }

@@ -1,27 +1,20 @@
+const path = require("path");
+
 module.exports = {
-    entry: {
-        main: "./src/game.ts"
-    },
+    entry: "./src/game.ts",
     output: {
-        filename: "main.min.js",
-        path: __dirname + "/build/"
+        filename: 'main.min.js',
+        path: path.resolve(__dirname, "public"),
     },
     mode: "production",
     module: {
         rules: [
             {
-                test: /\.ts?$/,
+                test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
-            {
-                test: /\.(png|jpe?g|svg)$/,
-                loader: 'file-loader',
-                options: {
-                    name: 'assets/[name].[ext]',
-                }
-            }
-        ],
+        ]
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],

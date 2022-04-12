@@ -1,15 +1,5 @@
 import { Line, Vec2 } from "./gameObject/physics";
-
-export function loadImage(src: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-        let t = new Image();
-
-        t.src = src;
-
-        t.onload = () => resolve(t);
-        t.onerror = () => { throw new Error("Image not found") };
-    });
-}
+import { StoredAssets } from "./types";
 
 class Camera {
     position: Vec2;
@@ -23,8 +13,8 @@ class Camera {
      */
 
     moveTo(pos: Vec2): void {
-        this.position.x = -pos.x;
-        this.position.y = -pos.y;
+        this.position.x = pos.x;
+        this.position.y = pos.y;
     }
 }
 
@@ -64,6 +54,8 @@ export class CanvasView {
 
         this.canvas.width = this.width;
         this.canvas.height = this.height;
+
+        this.center = { x: this.width / 2, y: this.height / 2 };
     }
 
     clear() {
@@ -150,27 +142,41 @@ export class CanvasView {
         this.context.fill();
     }
 
-    translateRelative(vec: Vec2) {
-        this.offset.x = vec.x + this.camera.position.x + this.center.x;
-        this.offset.y = vec.y + this.camera.position.y + this.center.y;
+    alpha(x: number) {
+        this.context.globalAlpha = x;
     }
 
-    translateToScreenCoordinates(pos: Vec2) {
-        this.offset.x = pos.x;
-        this.offset.y = pos.y;
+    translate(vec: Vec2) {
+        this.offset.x = vec.x;
+        this.offset.y = vec.y;
+    }
+
+    /**
+     * @param {Vec2} pos A screen coordinate
+     * 
+     * Gets the position of a screen coordinate relative to the camera
+     */
+
+    getGamePosition(pos: Vec2): Vec2 {
+        return {
+            x: pos.x + this.camera.position.x - this.center.x,
+            y: pos.y + this.camera.position.y - this.center.y
+        }
+    }
+
+    /**
+     * @param {Vec2} pos A game world coordinate
+     */
+
+    getScreenPosition(pos: Vec2): Vec2 {
+        return {
+            x: pos.x - this.camera.position.x + this.center.x,
+            y: pos.y - this.camera.position.y + this.center.y
+        }
     }
 
     getCanvas(): HTMLCanvasElement {
         return this.canvas;
-    }
-
-    screenToWorldCoordinates(pos: Vec2): Vec2 {
-        pos.x += this.camera.position.x;
-        pos.y += this.camera.position.y;
-        pos.x += this.center.x;
-        pos.y += this.center.y;
-
-        return pos;
     }
 }
 

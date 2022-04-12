@@ -1,75 +1,53 @@
-import { Renderer, loadImage } from "./Renderer";
+import { Renderer } from "./Renderer";
 import { InputHandler } from "./inputHandler";
 import { entityManager } from "./gameObject/entityManager";
-import { Player, Rock } from "./gameObject/entity";
-import { StoredAssets } from "./types";
 import { level } from "./level";
-import { Vec2 } from "./gameObject/physics";
-import generateBackgroundImage from "./background";
 import { Time } from "./time";
+import { Player } from "./gameObject/player";
+import { storedAssets, loadImages } from "./image";
+import { Particle, ParticleManager } from "./gameObject/particle";
 
 let inputHandler: InputHandler;
 let player: Player;
-let storedAssets: StoredAssets;
 
 let menu: HTMLDivElement;
 let resumeButton: HTMLDivElement;
 
 let running = true;
-let rockTimer = 0;
-let rockChance = .5;
-
-// ------------------------------------------------------------
-// rock generation
-// ------------------------------------------------------------
-
-function generateRock(player: Player) {
-    // generate position for new rock in front of the player
-    let newPos = {
-        x: player.position.x + Math.random() * 500,
-        y: -600
-    };
-
-    let rock = new Rock(
-        newPos,
-        Math.round(Math.random() * 70) + 30,
-        storedAssets["rock1"],
-    )
-
-    entityManager.newEntity(rock);
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-
+let cameraSpeed = 5;
 
 function update() {
     inputHandler.handleKeys();
 
-    entityManager.update(Time.deltaTime);
-
-    rockTimer += 1;
-    if (rockTimer > 200 && Math.random() > rockChance) {
-        generateRock(player);
-        rockTimer = 0;
-        rockChance = 2;
-    } else {
-        // rockChance -= .05;
+    if (!player.alive) {
+        // stop game
+        running = false;
     }
 
+    entityManager.update(Time.deltaTime);
+
+    ParticleManager.update();
     level.checkPlayerCamera(player);
+
+    Renderer.camera.moveTo({ x: Renderer.camera.position.x + cameraSpeed, y: player.position.y });
+
+    if (player.position.x + Renderer.center.x - Renderer.camera.position.x < 0) {
+        player.alive = false;
+    }
+
+    cameraSpeed += 0.01;
 }
 
 function render() {
     Renderer.clear();
 
-    Renderer.translateToScreenCoordinates({ x: Renderer.camera.position.x / 4, y: Renderer.camera.position.y / 4 });
+    Renderer.translate({ x: 0, y: 0 });
     Renderer.drawSprite(storedAssets["Background1"], 0, 0);
 
     level.renderLevel();
 
     entityManager.render();
+    ParticleManager.render();
 }
 
 function startGameLoop(): void {
@@ -112,12 +90,7 @@ function addEventListeners() {
 }
 
 async function init() {
-    storedAssets = {} as StoredAssets;
-
-    storedAssets["rock1"] = await loadImage("./src/assets/rock1.png");
-    storedAssets["player"] = await loadImage("./src/assets/player.png");
-
-    storedAssets["Background1"] = await loadImage(generateBackgroundImage());
+    await loadImages();
 
     player = new Player(
         { x: 0, y: -300 },
@@ -125,7 +98,8 @@ async function init() {
         storedAssets["player"]
     );
 
-    entityManager.newEntity(player);
+    entityManager.addPlayer(player);
+    entityManager.generateRock();
 
     inputHandler = new InputHandler({
         "a": () => player.move(0),

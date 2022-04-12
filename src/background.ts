@@ -36,33 +36,31 @@ function generateBackgroundImage(): string {
 
     context.clearRect(0, 0, imageWidth, imageHeight);
 
-    context.fillStyle = "red";
-    context.fillRect(0, 0, 100, 100);
-    context.fillStyle = "blue";
-    context.fillRect(50, 50, 200, 200);
+    // context.fillStyle = "red";
+    // context.fillRect(0, 0, 100, 100);
+    // context.fillStyle = "blue";
+    // context.fillRect(50, 50, 200, 200);
 
-    // let points: Vec2[] = [];
+    let points: Vec2[] = [];
 
-    // let x = 0;
+    let x = 0;
 
-    // while (true) {
-    //     let newPoint = getPointAtX(x);
-    //     points.push(newPoint);
+    while (true) {
+        let newPoint = getPointAtX(x);
+        points.push(newPoint);
 
-    //     if (x > imageWidth) break;
+        if (x > imageWidth) break;
 
-    //     x += Math.round(Math.random() * maxLineLength) + minLineLength;
-    // }
+        x += Math.round(Math.random() * maxLineLength) + minLineLength;
+    }
 
-    // context.lineWidth = 2;
-    // context.strokeStyle = "black";
-    // context.moveTo(Math.round(points[0].x), Math.round(minMountainHeight + points[0].y));
-    // for (let i = 1, l = points.length; i < l; i++) {
-    //     context.lineTo(Math.round(points[i].x), Math.round(minMountainHeight + points[i].y));
-    // }
-    // context.stroke();
-
-
+    context.lineWidth = 2;
+    context.strokeStyle = "black";
+    context.moveTo(Math.round(points[0].x), Math.round(minMountainHeight + points[0].y));
+    for (let i = 1, l = points.length; i < l; i++) {
+        context.lineTo(Math.round(points[i].x), Math.round(minMountainHeight + points[i].y));
+    }
+    context.stroke();
 
 
 
