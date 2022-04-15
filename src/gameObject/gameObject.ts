@@ -1,5 +1,5 @@
 import { Vec2 } from "./physics";
-import { Renderer } from "../Renderer";
+import { Renderer } from "../renderer";
 import { level } from "../level";
 
 export abstract class GameObject {

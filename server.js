@@ -1,9 +1,8 @@
 const express = require("express");
-const moment = require("moment");
 const path = require("path");
 const app = express();
 
-const port = 80;
+const port = 3000;
 
 app.get("/", (req, res) => {
     let today = new Date();
@@ -17,5 +16,5 @@ app.get("/", (req, res) => {
 app.use(express.static(path.join(__dirname, "public"), { index: "_" }));
 
 app.listen(port, () => {
-    console.log(`Listening on 'http://localhost:${port}'`);
+    console.log(`Listening on port ${port}\n`);
 });

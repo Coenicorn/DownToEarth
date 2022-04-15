@@ -1,7 +1,7 @@
 import { Rock } from "./entity";
 import { storedAssets } from "../image";
 import { GameObject } from "./gameObject";
-import { Renderer } from "../Renderer";
+import { Renderer } from "../renderer";
 import { Player } from "./player";
 import { intersectsAABB } from "./physics";
 
@@ -14,7 +14,8 @@ class EntityManager {
     constructor() {
         this.entities = [];
         this.timeSinceLastRock = Date.now();
-        this.rockTimer = 500;
+        this.rockTimer = 0;
+        this.reset();
     }
 
     addPlayer(player: Player): void {
@@ -64,9 +65,14 @@ class EntityManager {
 
     generateRock() {
         if (!this.player) return;
-        let pos = { x: Math.random() * Renderer.width * 2 - Renderer.width + Renderer.camera.position.x + this.player.velocity.x * 500, y: -800 }
+        let pos = { x: Math.random() * Renderer.width * 2 - Renderer.width + Renderer.camera.position.x, y: -1000 }
 
         this.newEntity(new Rock(pos, Math.random() * 50 + 50, storedAssets["rock1"]));
+    }
+
+    reset() {
+        this.entities.splice(0);
+        this.rockTimer = 700;
     }
 }
 

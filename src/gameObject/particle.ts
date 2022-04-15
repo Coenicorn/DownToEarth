@@ -1,4 +1,4 @@
-import { Renderer } from "../Renderer";
+import { Renderer } from "../renderer";
 import { Time } from "../time";
 import { Vec2 } from "./physics";
 

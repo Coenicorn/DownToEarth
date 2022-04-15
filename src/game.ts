@@ -1,20 +1,17 @@
-import { Renderer } from "./Renderer";
+import { Renderer } from "./renderer";
 import { InputHandler } from "./inputHandler";
 import { entityManager } from "./gameObject/entityManager";
 import { level } from "./level";
 import { Time } from "./time";
 import { Player } from "./gameObject/player";
 import { storedAssets, loadImages } from "./image";
-import { Particle, ParticleManager } from "./gameObject/particle";
+import { ParticleManager } from "./gameObject/particle";
 
 let inputHandler: InputHandler;
 let player: Player;
 
-let menu: HTMLDivElement;
-let resumeButton: HTMLDivElement;
-
 let running = true;
-let cameraSpeed = 5;
+let gameAnimationFrameReference: number;
 
 function update() {
     inputHandler.handleKeys();
@@ -22,20 +19,13 @@ function update() {
     if (!player.alive) {
         // stop game
         running = false;
+        showMenu();
     }
 
     entityManager.update(Time.deltaTime);
 
     ParticleManager.update();
-    level.checkPlayerCamera(player);
-
-    Renderer.camera.moveTo({ x: Renderer.camera.position.x + cameraSpeed, y: player.position.y });
-
-    if (player.position.x + Renderer.center.x - Renderer.camera.position.x < 0) {
-        player.alive = false;
-    }
-
-    cameraSpeed += 0.01;
+    level.update(player);
 }
 
 function render() {
@@ -48,45 +38,24 @@ function render() {
 
     entityManager.render();
     ParticleManager.render();
+
+    document.getElementById("score")!.innerHTML = `Score: ${Time.getTimeElapsed()}`;
+    document.getElementById("score-counter")!.innerHTML = `Score: ${Time.getTimeElapsed()}`;
 }
 
 function startGameLoop(): void {
-    Time.update();
+    if (running) requestAnimationFrame(startGameLoop);
+
+    Time.update(running);
 
     // for changes in fps, doesn't really help with testing though
-    if (running) update();
+    update();
 
     if (Time.canRender) {
         render();
 
         Time.resetRendertimer();
     }
-
-    requestAnimationFrame(startGameLoop);
-}
-
-function initDom() {
-    resumeButton = document.getElementById("button-resume") as HTMLDivElement;
-
-    menu = document.getElementById("menu") as HTMLDivElement;
-
-    resumeButton.onclick = () => {
-        if (running) return;
-
-        Time.reset();
-        running = true;
-
-        menu.style.visibility = "hidden";
-    }
-}
-
-function addEventListeners() {
-    addEventListener("blur", () => {
-        inputHandler.releaseAllkeys();
-        running = false;
-
-        menu.style.visibility = "visible";
-    });
 }
 
 async function init() {
@@ -105,15 +74,72 @@ async function init() {
         "a": () => player.move(0),
         "d": () => player.move(1),
         " ": () => player.move(2),
+        "Escape": () => {
+            running = false;
+            showMenu();
+        }
     });
 
-    initDom();
-    addEventListeners();
+    initMenuFunctionsDom();
 
     Time.reset();
     Time.setFps(60);
+}
 
+// ----------------
+// DOM FUNCTIONS
+// ----------------
+
+function showMenu() {
+    document.getElementById("menu")!.style.visibility = "visible";
+}
+
+function hideMenu() {
+    document.getElementById("menu")!.style.visibility = "hidden";
+}
+
+function startGame() {
+    player.alive = true;
+    running = true;
+    Time.reset();
+    cancelAnimationFrame(gameAnimationFrameReference);
     startGameLoop();
 }
+
+function initMenuFunctionsDom() {
+    let resetButton, resumeButton;
+
+    resetButton = document.getElementById("reset") as HTMLDivElement;
+    resumeButton = document.getElementById("resume") as HTMLDivElement;
+
+    // initialize newGame functionality
+    resetButton.onclick = reset;
+
+    resumeButton.onclick = resume;
+}
+
+function reset() {
+    entityManager.reset();
+    player.position = { x: 0, y: 0 }
+    player.velocity = { x: 0, y: 0 }
+    Time.resetTimeElapsed();
+
+    level.generateChunks();
+    startGame();
+
+    hideMenu();
+}
+
+function resume() {
+    if (!player.alive) return;
+
+    startGame();
+
+    hideMenu();
+}
+
+// ----------------
+// END
+// ----------------
 
 onload = init;

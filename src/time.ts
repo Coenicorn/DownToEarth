@@ -5,6 +5,7 @@ class time {
     private frameTime: number;
     private timeSinceLastUpdate: number;
     private renderTimer: number;
+    private timeElapsed: number;
 
     constructor() {
         this.dt = 0;
@@ -13,17 +14,19 @@ class time {
         this.fps = 0;
         this.timeSinceLastUpdate = 0;
         this.renderTimer = 0;
+        this.timeElapsed = 0;
     }
 
     /**
      * @param {number} frameTime Time elapsed between frames
      */
-    update() {
+    update(running: boolean) {
         let now = Date.now();
         this.frameTime = now - this.timeSinceLastUpdate;
         this.dt = this.frameTime / this.desiredFrameTime;
         this.timeSinceLastUpdate = now;
         this.renderTimer += this.frameTime;
+        if (running) this.timeElapsed += this.frameTime;
     }
 
     resetRendertimer() {
@@ -45,6 +48,14 @@ class time {
 
     getFrameTime(): number {
         return this.frameTime;
+    }
+
+    getTimeElapsed(): number {
+        return this.timeElapsed;
+    }
+
+    resetTimeElapsed() {
+        this.timeElapsed = 0;
     }
 
     get canRender(): boolean {

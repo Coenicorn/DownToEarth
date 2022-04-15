@@ -1,5 +1,5 @@
 import { LevelConfig } from "./types";
-import { Renderer } from "./Renderer";
+import { Renderer } from "./renderer";
 import SimplexNoise from "./simplex-noise";
 import { Vec2, Line, Mesh } from "./gameObject/physics";
 import { AABB } from "./types";
@@ -62,6 +62,12 @@ class Level {
         this.generateChunks();
     }
 
+    update(player: Player): void {
+        this.checkPlayerCamera(player);
+
+        // do something
+    }
+
     checkPlayerCamera(player: Player): void {
         // check if the camera is allowed to move to the player (if the player is far enough away from the left
         // side of the level)
@@ -72,6 +78,9 @@ class Level {
 
         posFromLeft = playerX - Renderer.center.x - chunkX;
         posFromRight = this.chunks[this.chunks.length - 1].xPosition + this.config.maxChunkSegments * this.config.segmentLength - playerX - Renderer.center.x;
+
+        if (posFromLeft > 0) Renderer.camera.moveTo({ x: player.position.x, y: player.position.y - 100 });
+        else Renderer.camera.moveTo({ x: chunkX + Renderer.center.x, y: player.position.y - 100 });
 
         // stop player from falling off map on the left side
         if (player.position.x <= chunkX) player.position.x = chunkX;
@@ -103,8 +112,12 @@ class Level {
         Renderer.translate(Renderer.getScreenPosition({ x: 0, y: 0 }));
 
         this.chunks.forEach(chunk => {
-            Renderer.color("green");
+            Renderer.color("#804a04");
+            let meshLines = [...chunk.mesh.getMesh()];
+            meshLines.splice(meshLines.length - 3, 2);
             Renderer.fillLineMesh(chunk.mesh.getMesh());
+            Renderer.color("#1ec700");
+            Renderer.drawLineMesh(meshLines, 20);
         });
     }
 

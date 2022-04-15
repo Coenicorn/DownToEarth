@@ -11,7 +11,7 @@ export class Player extends GameObject {
     constructor(pos: Vec2, dim: Vec2, sprite: HTMLImageElement) {
         super(pos, dim, sprite);
 
-        this.alive = true;
+        this.alive = false;
         this.speed = 2;
         this.maxSpeed = 10;
     }

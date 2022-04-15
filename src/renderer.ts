@@ -64,6 +64,7 @@ export class CanvasView {
 
     color(color: string): void {
         this.context.fillStyle = color;
+        this.context.strokeStyle = color;
     }
 
     drawRectangle(x: number, y: number, w: number, h: number) {
@@ -72,17 +73,15 @@ export class CanvasView {
         this.context.fillRect(x, y, w, h);
     }
 
-    drawLineMesh(mesh: Line[]) {
-        this.context.lineWidth = 1;
+    drawLineMesh(mesh: Line[], lineWidth: number) {
+        this.context.lineWidth = lineWidth;
         this.context.beginPath();
         let start = mesh[0];
         this.context.moveTo(Math.round(start.a.x + this.offset.x), Math.round(start.a.y + this.offset.y));
-        this.context.lineTo(Math.round(start.b.x + this.offset.x), Math.round(start.b.y + this.offset.y));
-        for (let i = 1, l = mesh.length; i < l; i++) {
+        for (let i = 1, l = mesh.length - 1; i < l; i++) {
             let c = mesh[i];
             this.context.lineTo(Math.round(c.b.x + this.offset.x), Math.round(c.b.y + this.offset.y));
         }
-        this.context.closePath();
         this.context.stroke();
     }
 

@@ -1,6 +1,6 @@
 import { Vec2 } from "./physics";
 import { GameObject } from "./gameObject";
-import { Renderer } from "../Renderer";
+import { Renderer } from "../renderer";
 import { entityManager } from "./entityManager";
 import { Particle, ParticleManager } from "./particle";
 
