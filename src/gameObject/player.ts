@@ -16,6 +16,11 @@ export class Player extends GameObject {
         this.maxSpeed = 10;
     }
 
+    reset(): void {
+        this.position = { x: 0, y: -200 }
+        this.velocity = { x: 0, y: 0 }
+    }
+
     init(): void {
     }
 

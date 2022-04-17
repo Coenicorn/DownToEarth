@@ -2,7 +2,6 @@ import { Vec2 } from "./physics";
 import { GameObject } from "./gameObject";
 import { Renderer } from "../renderer";
 import { entityManager } from "./entityManager";
-import { Particle, ParticleManager } from "./particle";
 
 export class Rock extends GameObject {
     mass: number;
@@ -24,7 +23,6 @@ export class Rock extends GameObject {
     tick(): void {
         this.velocity.y += 5 / this.mass;
 
-        ParticleManager.newParticle(new Particle({ x: this.position.x + this.dimensions.x / 2, y: this.position.y + this.dimensions.y / 2 }, { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2 }, 3, "red", 1000));
 
         if (this.onground) this.break()
         this.position.y += this.velocity.y;
@@ -38,7 +36,6 @@ export class Rock extends GameObject {
 
     break() {
         for (let i = 0; i < 10; i++) {
-            ParticleManager.newParticle(new Particle({ x: this.position.x, y: this.position.y }, { x: Math.random() * 4 - 2, y: Math.random() * 4 - 2 }, 3, "gray", 500));
         }
 
         this.alive = false;

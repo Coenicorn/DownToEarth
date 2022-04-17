@@ -17,5 +17,5 @@ export const storedAssets = {} as StoredAssets;
 export async function loadImages() {
     storedAssets["rock1"] = await loadImage("./assets/rock1.png");
     storedAssets["player"] = await loadImage("./assets/player.png");
-    storedAssets["Background1"] = await loadImage(generateBackgroundImage());
+    storedAssets["Background1"] = await loadImage("./assets/Background1.png");
 }

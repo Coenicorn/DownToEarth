@@ -59,4 +59,4 @@ export abstract class GameObject {
 
     abstract init(): void;
     abstract tick(): void;
-}
+} 

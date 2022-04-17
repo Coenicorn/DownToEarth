@@ -96,56 +96,12 @@ export class Line {
     }
 }
 
-export class Mesh {
-    private mesh: Line[];
+export function getLineMeshFromPoints(points: Vec2[]): Line[] {
+    let t = [];
 
-    constructor(points: Vec2[]) {
-        // construct line mesh
-        this.mesh = [];
-
-        for (let i = 1, l = points.length; i < l; i++) {
-            this.mesh.push(new Line(
-                {
-                    x: points[i - 1].x,
-                    y: points[i - 1].y
-                },
-                {
-                    x: points[i].x,
-                    y: points[i].y
-                }
-            ));
-        }
-
-        this.mesh.push(new Line(
-            {
-                x: points[points.length - 1].x,
-                y: points[points.length - 1].y
-            },
-            {
-                x: points[0].x,
-                y: points[0].y
-            }
-        ));
+    for (let i = 1; i < points.length; i++) {
+        t.push(new Line(points[i - 1], points[i]));
     }
 
-    static meshFromAABB(aabb: AABB): Mesh {
-        let x1, x2, x3, x4, y1, y2, y3, y4;
-
-        x1 = aabb.position.x;
-        y1 = aabb.position.y;
-        x2 = aabb.position.x + aabb.dimensions.x;
-        y2 = aabb.position.y;
-        x3 = aabb.position.x + aabb.dimensions.x;
-        y3 = aabb.position.y + aabb.dimensions.y;
-        x4 = aabb.position.x;
-        y4 = aabb.position.y + aabb.dimensions.y;
-
-        return new Mesh([
-            { x: x1, y: y1 }, { x: x2, y: y2 }, { x: x3, y: y3 }, { x: x4, y: y4 }
-        ]);
-    }
-
-    getMesh(): Line[] {
-        return this.mesh;
-    }
+    return t;
 }

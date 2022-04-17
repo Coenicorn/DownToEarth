@@ -5,7 +5,6 @@ import { level } from "./level";
 import { Time } from "./time";
 import { Player } from "./gameObject/player";
 import { storedAssets, loadImages } from "./image";
-import { ParticleManager } from "./gameObject/particle";
 
 let inputHandler: InputHandler;
 let player: Player;
@@ -24,7 +23,6 @@ function update() {
 
     entityManager.update(Time.deltaTime);
 
-    ParticleManager.update();
     level.update(player);
 }
 
@@ -32,15 +30,13 @@ function render() {
     Renderer.clear();
 
     Renderer.translate({ x: 0, y: 0 });
-    Renderer.drawSprite(storedAssets["Background1"], 0, 0);
+    Renderer.drawSprite(storedAssets["Background1"], 0, 0, Renderer.width, Renderer.height);
 
     level.renderLevel();
 
     entityManager.render();
-    ParticleManager.render();
 
     document.getElementById("score")!.innerHTML = `Score: ${Time.getTimeElapsed()}`;
-    document.getElementById("score-counter")!.innerHTML = `Score: ${Time.getTimeElapsed()}`;
 }
 
 function startGameLoop(): void {
@@ -62,7 +58,7 @@ async function init() {
     await loadImages();
 
     player = new Player(
-        { x: 0, y: -300 },
+        { x: 0, y: 0 },
         { x: 50, y: 100 },
         storedAssets["player"]
     );
@@ -120,8 +116,7 @@ function initMenuFunctionsDom() {
 
 function reset() {
     entityManager.reset();
-    player.position = { x: 0, y: 0 }
-    player.velocity = { x: 0, y: 0 }
+    player.reset();
     Time.resetTimeElapsed();
 
     level.generateChunks();

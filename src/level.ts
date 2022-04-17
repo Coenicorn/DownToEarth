@@ -1,12 +1,12 @@
 import { LevelConfig } from "./types";
 import { Renderer } from "./renderer";
 import SimplexNoise from "./simplex-noise";
-import { Vec2, Line, Mesh } from "./gameObject/physics";
+import { Vec2, Line, getLineMeshFromPoints } from "./gameObject/physics";
 import { AABB } from "./types";
 import { Player } from "./gameObject/player";
 
 class Chunk {
-    mesh: Mesh;
+    mesh: Line[];
     config: LevelConfig;
     xPosition: number;
 
@@ -16,7 +16,7 @@ class Chunk {
         this.mesh = this.makeLayout(noiseInstance);
     }
 
-    makeLayout(noiseInstance: SimplexNoise): Mesh {
+    makeLayout(noiseInstance: SimplexNoise): Line[] {
         let points: Vec2[] = [];
 
         // generate the maximum allowed chunk segments
@@ -45,7 +45,11 @@ class Chunk {
         points.push({ x: this.xPosition + this.config.maxChunkSegments * this.config.segmentLength, y: this.config.levelDownExtension });
         points.push({ x: this.xPosition, y: this.config.levelDownExtension });
 
-        return new Mesh(points);
+        return getLineMeshFromPoints(points);
+    }
+
+    getLinesOnTop(): Line[] {
+        return this.mesh.slice(0, this.mesh.length - 1);
     }
 }
 
@@ -66,6 +70,7 @@ class Level {
         this.checkPlayerCamera(player);
 
         // do something
+        this.chunks[0].mesh;
     }
 
     checkPlayerCamera(player: Player): void {
@@ -112,12 +117,12 @@ class Level {
         Renderer.translate(Renderer.getScreenPosition({ x: 0, y: 0 }));
 
         this.chunks.forEach(chunk => {
+            let chunkTopMesh = chunk.getLinesOnTop();
+
             Renderer.color("#804a04");
-            let meshLines = [...chunk.mesh.getMesh()];
-            meshLines.splice(meshLines.length - 3, 2);
-            Renderer.fillLineMesh(chunk.mesh.getMesh());
+            Renderer.fillLineMesh(chunk.mesh);
             Renderer.color("#1ec700");
-            Renderer.drawLineMesh(meshLines, 20);
+            Renderer.drawLineMesh(chunkTopMesh, 20);
         });
     }
 
@@ -155,7 +160,7 @@ class Level {
 
         // for each line segment in said chunks, check for collisions of all line segments of the AABB
         chunks.forEach(chunk => {
-            chunk?.mesh.getMesh().forEach(line => {
+            chunk?.mesh.forEach(line => {
                 if (line.intersectsAABB(aabb)) lines.push(line);
             });
         });
