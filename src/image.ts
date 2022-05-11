@@ -1,8 +1,9 @@
-import generateBackgroundImage from "./background";
-import { StoredAssets } from "./types";
+export interface StoredAssets {
+    [index: string]: HTMLImageElement;
+}
 
-function loadImage(src: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
+export function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve) => {
         let t = new Image();
 
         t.src = src;
@@ -13,9 +14,3 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 export const storedAssets = {} as StoredAssets;
-
-export async function loadImages() {
-    storedAssets["rock1"] = await loadImage("./assets/rock1.png");
-    storedAssets["player"] = await loadImage("./assets/player.png");
-    storedAssets["Background1"] = await loadImage("./assets/Background1.png");
-}

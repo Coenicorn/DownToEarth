@@ -1,12 +1,11 @@
 const path = require("path");
 
 module.exports = {
-    entry: "./src/game.ts",
+    entry: "./src/main.ts",
     output: {
         filename: 'main.min.js',
         path: path.resolve(__dirname, "public"),
     },
-    mode: "production",
     module: {
         rules: [
             {
@@ -18,5 +17,5 @@ module.exports = {
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
-    },
+    }
 }

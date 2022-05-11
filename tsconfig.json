@@ -3,19 +3,15 @@
         "target": "ESNext",
         "outDir": "lib",
         "module": "ESNext",
-        "moduleResolution": "classic",
+        "moduleResolution": "node",
         "strict": true /* Enable all strict type-checking options. */,
-        "pretty": true /* Stylize errors and messages using color and context. */,
         "lib": [
             "esnext",
             "dom"
         ],
-        "typeRoots": [
-            "src/**/*.d.ts",
-        ],
     },
     "include": [
-        "src/"
+        "./src/**/*"
     ],
     "exclude": [
         "./node_modules"
