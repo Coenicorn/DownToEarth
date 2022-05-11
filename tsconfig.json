@@ -4,7 +4,13 @@
         "outDir": "lib",
         "module": "ESNext",
         "moduleResolution": "node",
-        "strict": true /* Enable all strict type-checking options. */,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "strictBindCallApply": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": true,
         "lib": [
             "esnext",
             "dom"

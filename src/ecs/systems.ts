@@ -1,9 +1,7 @@
-import { canvas, context } from "../canvas";
-import { Input } from "../input";
 import { globalState } from "../main";
-import { Vec2 } from "../lib/vec2";
-import { BoxCollider, BoxRendererComponent, CameraFollow, ControllerComponent, SpriteComponent } from "./components";
-import { System, Component, Entity, ecs } from "../lib/ECS";
+import { BoxRendererComponent, CameraFollow, SpriteComponent } from "./components";
+import { System, ecs } from "../lib/ECS";
+import { view } from "../render";
 
 export class BoxRenderer extends System {
     componentsRequired: Set<Function> = new Set([BoxRendererComponent]);
@@ -14,8 +12,11 @@ export class BoxRenderer extends System {
 
             let box = entity.get(BoxRendererComponent);
 
-            context.fillStyle = box.color;
-            context.fillRect(entity.transform.position.x - globalState.camera.position.x, entity.transform.position.y - globalState.camera.position.y, box.width, box.height);
+            let x = globalState.camera.getScreenX(entity.transform.position.x);
+            let y = globalState.camera.getScreenY(entity.transform.position.y);
+
+            view.context.fillStyle = box.color;
+            view.context.fillRect(x, y, box.width, box.height);
         }
     }
 }
@@ -31,7 +32,10 @@ export class SpriteRenderer extends System {
             let width = spritecomp.image.width * spritecomp.scale.x;
             let height = spritecomp.image.height * spritecomp.scale.y;
 
-            context.drawImage(spritecomp.image, entity.transform.position.x - spritecomp.anchor.x * width - globalState.camera.position.x, entity.transform.position.y - spritecomp.anchor.y * height - globalState.camera.position.y, width, height);
+            let x = globalState.camera.getScreenX(entity.transform.position.x);
+            let y = globalState.camera.getScreenY(entity.transform.position.y);
+
+            view.context.drawImage(spritecomp.image, x - spritecomp.anchor.x * width, y - spritecomp.anchor.y * height, width, height);
         }
     }
 }
@@ -43,10 +47,9 @@ export class TrackCamera extends System {
         for (let id of entities) {
             let entity = ecs.getComponents(id);
 
-            globalState.camera.position = entity.transform.position.clone();
-
-            globalState.camera.position.x -= canvas.width / 2;
-            globalState.camera.position.y -= canvas.height / 2;
+            // set camera position to entity position
+            globalState.camera.setX(entity.transform.position.x);
+            globalState.camera.setY(entity.transform.position.y);
         }
     }
 }

@@ -1,4 +1,3 @@
-import { QuadTree } from "./quadTree";
 import { Vec2 } from "./vec2";
 
 export class AABB {
@@ -93,54 +92,3 @@ export class AABB {
 //         return (t > 0 && t < 1 && u > 0 && u < 1);
 //     }
 // }
-
-export class PhysicsObject {
-    constructor(
-        private _position: Vec2,
-        private _velocity: Vec2,
-        private _acceleration: Vec2,
-        private _aabb: AABB,
-        private _mass: number,
-        private _hasGravity: boolean,
-        private _isStatic: boolean
-    ) { }
-
-    get position(): Vec2 {
-        return this._position;
-    }
-
-    get velocity(): Vec2 {
-        return this._velocity;
-    }
-
-    get acceleration(): Vec2 {
-        return this._acceleration;
-    }
-
-    get hasGravity(): boolean {
-        return this._hasGravity;
-    }
-
-    get isStatic(): boolean {
-        return this._isStatic;
-    }
-
-    get mass(): number {
-        return this._mass;
-    }
-
-    get aabb(): AABB {
-        return this._aabb;
-    }
-
-    applyForce(force: Vec2): void {
-        force.divide(this.mass);
-        this.acceleration.add(force);
-    }
-
-    update(): void {
-        this._velocity.add(this.acceleration);
-        this._position.add(this.velocity);
-        this._acceleration = new Vec2(0, 0);
-    }
-}

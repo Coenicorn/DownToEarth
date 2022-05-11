@@ -1,4 +1,3 @@
-import { canvas, context } from "./canvas";
 import { BoxCollider, BoxRendererComponent, CameraFollow, ControllerComponent, PlayerComponent, SpriteComponent } from "./ecs/components";
 import { ecs, Entity } from "./lib/ECS";
 import { SpriteRenderer, BoxRenderer, TrackCamera } from "./ecs/systems";
@@ -6,7 +5,7 @@ import { StoredAssets, loadImage } from "./image";
 import { Input } from "./input";
 import { Vec2 } from "./lib/vec2";
 import { PhysicsComponent, PhysicsController } from "./lib/physics.ecs";
-import { AABB, PhysicsObject } from "./lib/physics";
+import { Camera, view } from "./render";
 
 const storedAssets = {} as StoredAssets;
 
@@ -14,12 +13,10 @@ export const globalState = {
     Time: {
         deltaTime: 0
     },
-    camera: {
-        position: new Vec2(0, 0)
-    },
+    camera: new Camera(0, 0),
     level: {
         totalLevelHeight: 100000,
-        totalLevelWidth: canvas.width * 2,
+        totalLevelWidth: view.width * 2,
         currentLevel: 1
     }
 }
@@ -37,19 +34,19 @@ function renderGUI(): void {
 
 
     // render height meter
-    context.drawImage(storedAssets["depth_meter"], 20, 20);
+    view.context.drawImage(storedAssets["depth_meter"], 20, 20);
 
-    context.fillStyle = "black";
+    view.context.fillStyle = "black";
     let yPos = storedAssets["depth_meter"].height / globalState.level.totalLevelHeight * ecs.getComponents(player).transform.position.y;
     yPos = yPos < storedAssets["depth_meter"].height ? yPos : storedAssets["depth_meter"].height;
-    context.fillRect(10, 20 + yPos, 50, 5);
+    view.context.fillRect(10, 20 + yPos, 50, 5);
 
 
 
 }
 
 function renderStaticContent(): void {
-    context.drawImage(storedAssets["landscape"], 0, 0, canvas.width, canvas.height);
+    view.context.drawImage(storedAssets["landscape"], 0, 0, view.width, view.height);
 }
 
 function startGameLoop() {
@@ -66,7 +63,7 @@ function startGameLoop() {
     last = now;
 
     // clear canvas
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    view.context.clearRect(0, 0, view.width, view.height);
 
     renderStaticContent();
 
@@ -96,7 +93,7 @@ async function init() {
     // ecs.addComponent(level, new SpriteComponent(storedAssets["level1"], new Vec2(1, 1), new Vec2(0, .4)));
     // ecs.addComponent(level, new PhysicsComponent(new PhysicsObject(ecs.getComponents(level).transform.position, new Vec2(0, 0), new Vec2(0, 0), new AABB(0, 0, globalState.level.totalLevelWidth, 100), 10, true, false)));
 
-    // ecs.getComponents(level).transform.position = new Vec2(0, canvas.height - 100);
+    // ecs.getComponents(level).transform.position = new Vec2(0, view.height - 100);
 
 
 
@@ -121,23 +118,23 @@ async function init() {
     ecs.addComponent(player, new BoxCollider(100, 100, false));
     ecs.addComponent(player, new PlayerComponent());
     ecs.addComponent(player, new CameraFollow());
-    ecs.addComponent(player, new PhysicsComponent(new PhysicsObject(ecs.getComponents(player).transform.position, new Vec2(0, 0), new Vec2(0, 0), new AABB(0, 0, 100, 100), 10, false, false)));
+    ecs.addComponent(player, new PhysicsComponent(ecs.getComponents(player).transform.position, new Vec2(0, 0), new Vec2(0, 0), new Vec2(10, 10), 10, false, false));
 
 
     for (let i = 0; i < 100; i++) {
         let t = ecs.newEntity();
 
-        // ecs.getComponents(t).transform.position = new Vec2(Math.random() * canvas.width, Math.random() * canvas.height);
+        // ecs.getComponents(t).transform.position = new Vec2(Math.random() * view.width, Math.random() * view.height);
 
         ecs.addComponent(t, new BoxRendererComponent(10, 10, "red", new Vec2(0, 0)));
-        ecs.addComponent(t, new PhysicsComponent(new PhysicsObject(ecs.getComponents(t).transform.position, new Vec2(0, 0), new Vec2(0, 0), new AABB(0, 0, 10, 10), 10, true, false)));
+        ecs.addComponent(t, new PhysicsComponent(ecs.getComponents(t).transform.position, new Vec2(0, 0), new Vec2(0, 0), new Vec2(10, 10), 10, true, false));
     }
 
 
 
     // // entity component system initialization
     // ecs.addSystem(new CharacterController());
-    ecs.addSystem(new PhysicsController(new AABB(0, 0, globalState.level.totalLevelWidth + 1, globalState.level.totalLevelHeight + 1)));
+    ecs.addSystem(new PhysicsController());
     ecs.addSystem(new TrackCamera());
     ecs.addSystem(new BoxRenderer());
     ecs.addSystem(new SpriteRenderer());

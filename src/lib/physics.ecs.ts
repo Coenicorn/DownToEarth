@@ -1,52 +1,73 @@
 import { Component, System } from "./ECS";
-import { AABB, PhysicsObject } from "./physics";
-import { QuadTree } from "./quadTree";
+import { AABB } from "./physics";
 import { Vec2 } from "./vec2";
 
 export class PhysicsComponent extends Component {
     constructor(
-        public physics: PhysicsObject
+        private _position: Vec2,
+        private _velocity: Vec2,
+        private _acceleration: Vec2,
+        private _dimensions: Vec2,
+        private _mass: number,
+        private _hasGravity: boolean,
+        private _isStatic: boolean
     ) {
         super();
+    }
+
+    get position(): Vec2 {
+        return this._position;
+    }
+
+    get velocity(): Vec2 {
+        return this._velocity;
+    }
+
+    get acceleration(): Vec2 {
+        return this._acceleration;
+    }
+
+    get hasGravity(): boolean {
+        return this._hasGravity;
+    }
+
+    get isStatic(): boolean {
+        return this._isStatic;
+    }
+
+    get mass(): number {
+        return this._mass;
+    }
+
+    get dimensions(): Vec2 {
+        return this._dimensions;
+    }
+
+    applyForce(force: Vec2): void {
+        force.divide(this.mass);
+        this.acceleration.add(force);
+    }
+
+    update(): void {
+        this._velocity.add(this.acceleration);
+        this._position.add(this.velocity);
+        this._acceleration = new Vec2(0, 0);
     }
 }
 
 export class PhysicsController extends System {
     componentsRequired: Set<Function> = new Set([PhysicsComponent]);
 
-    quadTree: QuadTree;
-
-    constructor(
-        dimensions: AABB
-    ) {
-        super();
-
-        this.quadTree = new QuadTree(dimensions, 0);
-    }
-
     update(entities: Set<number>): void {
-        this.quadTree.clear();
-
         for (let id of entities) {
             let entity = this.ecs.getComponents(id);
-            let physics = entity.get(PhysicsComponent).physics;
+            let physics = entity.get(PhysicsComponent);
 
             if (physics.hasGravity)
                 physics.applyForce(new Vec2(0, 9.81));
 
             physics.update();
-            physics.aabb.updatePos(physics.position);
         }
-
-        // for (let id of entities) {
-        //     let entity = this.ecs.getComponents(id);
-        //     let physics = entity.get(PhysicsComponent).physics;
-
-        //     let others: PhysicsObject[] = [];
-        //     this.quadTree.retrieve(others, physics);
-
-        //     // console.log(quadTree.getIndex(physics));
-        // }
     }
 }
 
