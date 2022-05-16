@@ -1,25 +1,23 @@
 import { BoxCollider, BoxRendererComponent, CameraFollow, ControllerComponent, PlayerComponent, SpriteComponent } from "./ecs/components";
 import { ecs, Entity } from "./lib/ECS";
-import { SpriteRenderer, BoxRenderer, TrackCamera } from "./ecs/systems";
+import { SpriteRenderer, BoxRenderer, TrackCamera, CharacterController, CollisionManager } from "./ecs/systems";
 import { StoredAssets, loadImage } from "./image";
 import { Input } from "./input";
 import { Vec2 } from "./lib/vec2";
-import { PhysicsComponent, PhysicsController } from "./lib/physics.ecs";
-import { Camera, view } from "./render";
+import { Camera, view } from "./lib/renderer";
 
 const storedAssets = {} as StoredAssets;
 
 export const globalState = {
-    Time: {
-        deltaTime: 0
-    },
-    camera: new Camera(0, 0),
     level: {
         totalLevelHeight: 100000,
-        totalLevelWidth: view.width * 2,
+        totalLevelWidth: 4000,
         currentLevel: 1
     }
 }
+
+export const GameCamera = new Camera(0, 0);
+export const Time = { DeltaTime: 0 };
 
 let border1: Entity;
 let border2: Entity;
@@ -52,7 +50,7 @@ function renderStaticContent(): void {
 function startGameLoop() {
     let now = Date.now();
     timeElapsed += (now - last);
-    globalState.Time.deltaTime = (now - last) / fps;
+    Time.DeltaTime = (now - last) / fps;
 
     framerateUpdate += (now - last);
     if (framerateUpdate > 500) {
@@ -65,7 +63,7 @@ function startGameLoop() {
     // clear canvas
     view.context.clearRect(0, 0, view.width, view.height);
 
-    renderStaticContent();
+    // renderStaticContent();
 
     ecs.update();
 
@@ -84,60 +82,47 @@ async function init() {
     storedAssets["landscape"] = await loadImage("./img/landscape.png");
     storedAssets["level1"] = await loadImage("./img/level1.png");
 
-
-
-    // level = ecs.newEntity();
-
-    // ecs.addComponent(level, new BoxRendererComponent(globalState.level.totalLevelWidth, 100, "red", new Vec2(0, 0)))
-    // ecs.addComponent(level, new BoxCollider(globalState.level.totalLevelWidth, 100, true))
-    // ecs.addComponent(level, new SpriteComponent(storedAssets["level1"], new Vec2(1, 1), new Vec2(0, .4)));
-    // ecs.addComponent(level, new PhysicsComponent(new PhysicsObject(ecs.getComponents(level).transform.position, new Vec2(0, 0), new Vec2(0, 0), new AABB(0, 0, globalState.level.totalLevelWidth, 100), 10, true, false)));
-
-    // ecs.getComponents(level).transform.position = new Vec2(0, view.height - 100);
+    // LEVEL INITIALIZATION
 
 
 
-    // border1 = ecs.newEntity();
+    level = ecs.newEntity();
 
-    // ecs.addComponent(border1, new BoxCollider(1, globalState.level.totalLevelHeight, true));
+    let levelComponents = ecs.getComponents(level);
 
+    ecs.getComponents(level).transform.position = new Vec2(0, 0);
+    ecs.addComponent(level, new SpriteComponent(storedAssets["level1"], new Vec2(storedAssets["level1"].width, storedAssets["level1"].height), new Vec2(0, 400)));
+    ecs.addComponent(level, new BoxCollider(levelComponents.get(SpriteComponent).dimensions.x, levelComponents.get(SpriteComponent).dimensions.y - 400, true));
+    ecs.addComponent(level, new BoxRendererComponent(levelComponents.get(BoxCollider).width, levelComponents.get(BoxCollider).height, "rgba(255, 0, 0, .5)", new Vec2(0, 0)));
 
-    // border2 = ecs.newEntity();
+    // BORDER INITIALIZATION
 
-    // ecs.addComponent(border2, new BoxCollider(1, globalState.level.totalLevelHeight, true));
+    border1 = ecs.newEntity();
+    ecs.addComponent(border1, new BoxCollider(1, globalState.level.totalLevelHeight, true));
 
-    // ecs.getComponents(border2).transform.position.x = globalState.level.totalLevelWidth;
+    border2 = ecs.newEntity();
+    ecs.getComponents(border2).transform.position.x = globalState.level.totalLevelWidth;
+    ecs.addComponent(border2, new BoxCollider(1, globalState.level.totalLevelHeight, true));
 
-
-
+    // PLAYER INITIALIZATION
 
     player = ecs.newEntity();
-
-    ecs.addComponent(player, new SpriteComponent(storedAssets["player"], new Vec2(.2, .2), new Vec2(.25, .25)));
-    ecs.addComponent(player, new ControllerComponent(1, 8, 6));
+    ecs.addComponent(player, new SpriteComponent(storedAssets["player"], new Vec2(100, 100), new Vec2(0, 0)));
+    ecs.addComponent(player, new ControllerComponent(8, 8, 6));
     ecs.addComponent(player, new BoxCollider(100, 100, false));
     ecs.addComponent(player, new PlayerComponent());
     ecs.addComponent(player, new CameraFollow());
-    ecs.addComponent(player, new PhysicsComponent(ecs.getComponents(player).transform.position, new Vec2(0, 0), new Vec2(0, 0), new Vec2(10, 10), 10, false, false));
 
-
-    for (let i = 0; i < 100; i++) {
-        let t = ecs.newEntity();
-
-        // ecs.getComponents(t).transform.position = new Vec2(Math.random() * view.width, Math.random() * view.height);
-
-        ecs.addComponent(t, new BoxRendererComponent(10, 10, "red", new Vec2(0, 0)));
-        ecs.addComponent(t, new PhysicsComponent(ecs.getComponents(t).transform.position, new Vec2(0, 0), new Vec2(0, 0), new Vec2(10, 10), 10, true, false));
-    }
 
 
 
     // // entity component system initialization
-    // ecs.addSystem(new CharacterController());
-    ecs.addSystem(new PhysicsController());
+    ecs.addSystem(new CharacterController());
+    ecs.addSystem(new CharacterController());
+    ecs.addSystem(new CollisionManager());
     ecs.addSystem(new TrackCamera());
-    ecs.addSystem(new BoxRenderer());
     ecs.addSystem(new SpriteRenderer());
+    ecs.addSystem(new BoxRenderer());
 
 
 

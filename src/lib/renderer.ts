@@ -1,3 +1,5 @@
+import { Vec2 } from "./vec2";
+
 let canvas = document.createElement("canvas");
 let context = canvas.getContext("2d")!;
 
@@ -30,8 +32,11 @@ export class Camera {
         this._y = y;
         this._zoom = 1;
     }
+    get zoom(): number {
+        return this._zoom;
+    }
 
-    set zoom(z: number) {
+    setZoom(z: number) {
         this._zoom = z;
     }
 
@@ -44,10 +49,10 @@ export class Camera {
     }
 
     getScreenX(x: number): number {
-        return canvas.width + (this._x - x) / this._zoom;
+        return view.center.x + (x - this._x) * this._zoom;
     }
 
     getScreenY(y: number): number {
-        return canvas.height + (this._y - y) / this._zoom;
+        return view.center.y + (y - this._y) * this._zoom;
     }
 }

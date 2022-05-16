@@ -1,5 +1,6 @@
+import { MotionComponent } from "../ecs/components";
+import { globalState } from "../main";
 import { Component, System } from "./ECS";
-import { AABB } from "./physics";
 import { Vec2 } from "./vec2";
 
 export class PhysicsComponent extends Component {
@@ -8,6 +9,7 @@ export class PhysicsComponent extends Component {
         private _velocity: Vec2,
         private _acceleration: Vec2,
         private _dimensions: Vec2,
+        private _friction: number,
         private _mass: number,
         private _hasGravity: boolean,
         private _isStatic: boolean
@@ -43,6 +45,10 @@ export class PhysicsComponent extends Component {
         return this._dimensions;
     }
 
+    get friction(): number {
+        return this._friction;
+    }
+
     applyForce(force: Vec2): void {
         force.divide(this.mass);
         this.acceleration.add(force);
@@ -50,13 +56,15 @@ export class PhysicsComponent extends Component {
 
     update(): void {
         this._velocity.add(this.acceleration);
-        this._position.add(this.velocity);
+        this._position.x += this._velocity.x * globalState.Time.deltaTime;
+        this._position.y += this._velocity.y * globalState.Time.deltaTime;
+        if (this._acceleration.magnitude == 0) this._velocity.multiply(.95);
         this._acceleration = new Vec2(0, 0);
     }
 }
 
 export class PhysicsController extends System {
-    componentsRequired: Set<Function> = new Set([PhysicsComponent]);
+    componentsRequired: Set<Function> = new Set([PhysicsComponent, MotionComponent]);
 
     update(entities: Set<number>): void {
         for (let id of entities) {
@@ -70,8 +78,6 @@ export class PhysicsController extends System {
         }
     }
 }
-
-
 
 
 

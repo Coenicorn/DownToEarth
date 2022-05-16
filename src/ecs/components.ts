@@ -18,7 +18,7 @@ export class Renderable extends Component {
 export class SpriteComponent extends Renderable {
     constructor(
         public image: HTMLImageElement,
-        public scale: Vec2,
+        public dimensions: Vec2,
         anchor: Vec2
     ) {
         super(anchor);
@@ -34,9 +34,6 @@ export class ControllerComponent extends Component {
 }
 
 export class BoxCollider extends Component {
-    public collidingWith: Array<Entity> = [];
-    public nextPos: null | Vec2 = null;
-
     constructor(
         public width: number,
         public height: number,
@@ -55,4 +52,11 @@ export class BoxRendererComponent extends Renderable {
 
 export class PlayerComponent extends Component {
     constructor() { super(); }
+}
+
+export class MotionComponent extends Component {
+    constructor(
+        public velocity: Vec2,
+        public acceleration: Vec2
+    ) { super(); }
 }
